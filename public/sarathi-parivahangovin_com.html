@@ -1,0 +1,263 @@
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Know Your Driving Licence Status</title>
+        <style>
+            * { box-sizing: border-box; }
+            body { margin: 0; font-family: Arial, Helvetica, sans-serif; background-color: #fff; color: #333; }
+            
+            .container { max-width: 1350px; margin: 30px auto; padding: 0 20px; }
+            .panel { border: 1px solid #bce8f1; border-radius: 4px; margin-bottom: 20px; }
+            .panel-heading { background-color: #d9edf7; color: #31708f; padding: 10px 15px; font-weight: bold; border-bottom: 1px solid #bce8f1; font-size: 14px; }
+            .panel-body { padding: 30px 40px; background: #fdfdfd; }
+            
+            .form-center-wrapper { width: 100%; display: flex; flex-direction: column; align-items: center; margin-bottom: 30px; }
+            .form-group { display: flex; align-items: center; margin-bottom: 15px; width: 100%; max-width: 500px; justify-content: space-between; }
+            .form-group label { color: #d9534f; font-size: 12px; font-weight: normal; text-align: left; width: 45%; }
+            .form-control { width: 50%; padding: 5px 8px; border: 1px solid #006495; border-radius: 2px; font-size: 12px; text-transform: uppercase; }
+            
+            .captcha-box { display: flex; align-items: center; gap: 10px; width: 50%; }
+            .captcha-img { background: #888; color: #000; width: 90px; height: 30px; display: flex; align-items: center; justify-content: center; font-family: 'Courier New', Courier, monospace; font-size: 20px; font-weight: 900; letter-spacing: 2px; }
+            .captcha-input { width: 70px; padding: 5px 8px; border: 1px solid #006495; border-radius: 2px; }
+            
+            .btn-group { display: flex; gap: 10px; margin-top: 10px; justify-content: center; width: 100%; }
+            .btn { background: #f5f5f5; border: 1px solid #999; padding: 5px 12px; font-weight: bold; cursor: pointer; font-size: 13px; border-radius: 3px; color: #000; }
+            .btn:hover { background: #e0e0e0; }
+            
+            .note-section { font-size: 12px; line-height: 1.8; color: #000; }
+            .note-section p { margin: 4px 0; }
+            .text-red { color: #d9534f; }
+            
+            .terms-title { text-align: center; color: #31708f; font-size: 22px; text-decoration: underline; margin: 30px 0 15px 0; font-family: 'Times New Roman', Times, serif; }
+            .terms-section { border: 1px solid #999; padding: 20px 25px; font-size: 12px; color: #333; line-height: 1.7; border-radius: 4px; }
+            .terms-section ul { margin: 0; padding-left: 20px; }
+            .terms-section li { margin-bottom: 10px; }
+            
+            .error-msg { color: red; font-size: 13px; text-align: center; margin-bottom: 15px; display: none; }
+            
+            @media (max-width: 768px) {
+                .form-group { flex-direction: column; align-items: flex-start; }
+                .form-group label { width: 100%; margin-bottom: 5px; }
+                .form-control, .captcha-box { width: 100%; }
+            }
+        </style>
+    </head>
+    <body>
+        
+            <style>
+        .sarathi-header-wrap { background-color: #21a3f0; color: #fff; font-family: Arial, sans-serif; border-bottom: 2px solid #005680; }
+        .sarathi-header { max-width: 1400px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; padding: 10px 20px; }
+        
+        .header-left-col { display: flex; align-items: center; gap: 15px; width: 33%; }
+        .header-emblem { height: 75px; background: #fff; border-radius: 50%; padding: 2px; box-shadow: 0 0 5px rgba(0,0,0,0.2); }
+        .header-gov-text { line-height: 1.3; }
+        .header-gov-text .hi-text { font-size: 16px; font-weight: normal; margin-bottom: 2px; }
+        .header-gov-text .en-text-1 { font-size: 15px; font-weight: bold; margin-bottom: 2px; }
+        .header-gov-text .en-text-2 { font-size: 15px; font-weight: normal; }
+
+        .header-mid-col { display: flex; align-items: center; justify-content: center; width: 33%; }
+        .sarathi-center-logo { max-height: 55px; width: auto; object-fit: contain; }
+
+        .header-right-col { display: flex; align-items: center; gap: 15px; flex-wrap: wrap; justify-content: flex-end; width: 33%; }
+        .datetime-block { font-size: 13px; font-weight: bold; display: flex; gap: 10px; }
+        .lang-block { font-size: 14px; display: flex; align-items: center; gap: 5px; }
+        .lang-icon { color: #1a237e; font-weight: bold; font-size: 20px; display: flex; align-items: flex-end; line-height: 1; }
+        .lang-icon sub { font-size: 12px; margin-bottom: -3px; }
+        
+        .font-size-block { display: flex; gap: 5px; }
+        .font-size-btn { background: #0c87cc; color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 12px; border: 1px solid #086b9f; font-weight: bold; cursor: pointer; }
+        
+        @media (max-width: 992px) {
+            .sarathi-header { flex-direction: column; text-align: center; gap: 15px; padding: 15px 10px; }
+            .header-left-col, .header-mid-col, .header-right-col { width: 100%; justify-content: center; }
+            .header-left-col { flex-direction: column; text-align: center; }
+            .header-right-col { flex-direction: column; align-items: center; gap: 12px; }
+        }
+    </style>
+
+    <div class="sarathi-header-wrap">
+        <div class="sarathi-header">
+            <div class="header-left-col">
+                <!-- আপনার বামদিকের লোগো (Emblem) এখানে বসাবেন -->
+               
+                <div class="header-gov-text">
+                    <div class="hi-text">सड़क परिवहन और राजमार्ग मंत्रालय भारत सरकार</div>
+                    <div class="en-text-1">MINISTRY OF ROAD TRANSPORT & HIGHWAYS</div>
+                    <div class="en-text-2">Government of India</div>
+                </div>
+            </div>
+            
+            <div class="header-mid-col">
+                <!-- আপনার মাঝখানের (Sarathi Parivahan) লোগোটি এখানে বসাবেন -->
+                <img class="sarathi-center-logo" src="https://sarathi-parivahangovin.com/wp-content/uploads/2026/08/parivahan-logo-2.png">
+            </div>
+
+            <div class="header-right-col">
+                <div class="datetime-block">
+                    <span>DATE: <span id="live-date"></span></span>
+                    <span>TIME: <span id="live-time"></span></span>
+                </div>
+                <div class="lang-block">
+                    Language: <span class="lang-icon">अ<sub>A</sub></span>
+                </div>
+                <div class="font-size-block">
+                    <span class="font-size-btn">A-</span>
+                    <span class="font-size-btn">A</span>
+                    <span class="font-size-btn">A+</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function updateSarathiTime() {
+            const now = new Date();
+            const dateStr = String(now.getDate()).padStart(2, '0') + '-' + String(now.getMonth()+1).padStart(2, '0') + '-' + now.getFullYear();
+            
+            let hours = now.getHours();
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12;
+            hours = hours ? hours : 12; 
+            const timeStr = String(hours).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0') + ':' + String(now.getSeconds()).padStart(2, '0') + ' ' + ampm;
+            
+            document.getElementById('live-date').textContent = dateStr;
+            document.getElementById('live-time').textContent = timeStr;
+        }
+        setInterval(updateSarathiTime, 1000);
+        updateSarathiTime();
+    </script>
+    
+        <div class="container">
+            <div class="panel">
+                <div class="panel-heading">Know Your Driving Licence Status</div>
+                <div class="panel-body">
+                    <div class="error-msg">No records found. Please check your DL No. and DOB.</div>
+                    
+                    <div class="form-center-wrapper">
+                        <form action="" method="GET" style="width: 100%; display: flex; flex-direction: column; align-items: center;">
+                            <div class="form-group">
+                                <label>Driving Licence No. *</label>
+                                <input type="text" name="dl_no" class="form-control" placeholder="ENTER DRIVING LICENCE NO." required>
+                            </div>
+                            <div class="form-group">
+                                <label>Date Of Birth (DOB) *</label>
+                                <input type="text" name="dob" class="form-control" placeholder="SELECT DATE OF BIRTH" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Enter Verification Code *</label>
+                                <div class="captcha-box">
+                                    <div class="captcha-img">w2hmb</div>
+                                    <input type="text" class="captcha-input" required>
+                                </div>
+                            </div>
+                            <div class="btn-group">
+                                <button type="submit" class="btn">Check Status</button>
+                                <button type="reset" class="btn">Reset</button>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <div class="note-section">
+                        <p><b>Note:</b> - Driving Licence number can be entered in any of the following formats: DL-1420110012345 or DL14 20110012345</p>
+                        <p class="text-red">Total number of input characters should be exactly 16 (including space (' ') or hyphen ('-')).</p>
+                        <p class="text-red">If you hold an old driving license with a different format, please convert the format as per below rule before entering.</p>
+                        <p class="text-red" style="font-weight: bold;">SS-RRYYYYNNNNNNN OR SSRR&lt;space&gt;YYYYNNNNNNN</p>
+                        <p class="text-red">Where</p>
+                        <p class="text-red">SS - Two character State Code (like RJ for Rajasthan, TN for Tamil Nadu etc)</p>
+                        <p class="text-red">RR - Two digit RTO Code</p>
+                        <p class="text-red">YYYY - 4-digit Year of Issue (For Example: If year is mentioned in 2 digits, say 99, then it should be converted to 1999. Similarly use 2012 for 12).</p>
+                        <p class="text-red">Rest of the numbers are to be given in 7 digits. If there are less number of digits, then additional zeros (0's) may be added to make the total 7.</p>
+                        <p class="text-red">For example: If the Driving Licence Number is RJ-13/DLC/12/123456 then please enter RJ-1320120123456 or RJ13 20120123456.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="terms-title">Terms Of Uses</div>
+            <div class="terms-section">
+                <ul>
+                    <li>The content on this portal is meant for sharing information regarding vehicles on the basis of information available on centralized VAHAN and vehicle National Register. Using content of this portal for any commercial purpose or any derivative work or misuse of any kind is strictly prohibited and may invite legal consequences.</li>
+                    <li>The content can be removed from the portal without notice and at any time as per Ministry of Road Transport and Highways/NIC direction.</li>
+                    <li>Ministry of Road Transport and Highways/NIC shall not be held responsible for any interactions/passing of information(s) etc. between any user via e-mail, chat and any other mediation with another user. Ministry of Road Transport and Highways/NIC has no obligation to monitor any such disputes arising between the users and shall not be party to such dispute/litigation etc.</li>
+                    <li>These terms and conditions shall be governed by and construed in accordance with the Indian Laws. Any dispute arising under these terms and conditions shall be subject to the jurisdiction of the courts of Indian territory only.</li>
+                </ul>
+            </div>
+        </div>
+
+            <style>
+        .sarathi-footer-wrap { background-color: #21a3f0; color: #fff; font-family: Arial, sans-serif; padding: 10px 0 0 0; margin-top: 50px; }
+        .sarathi-footer-top { text-align: center; font-size: 11px; font-style: italic; padding: 5px 15px; margin-bottom: 10px; }
+        .sarathi-footer-main { max-width: 1400px; margin: 0 auto; display: flex; flex-wrap: wrap; justify-content: space-between; padding: 10px 30px 25px 30px; }
+        
+        .footer-logos { display: flex; gap: 30px; align-items: center; width: 35%; }
+        .nic-section { display: flex; flex-direction: column; gap: 5px; }
+        .nic-text { font-size: 11px; font-style: italic; margin-bottom: 5px;}
+        .nic-text span { color: #0b498f; font-weight: bold; }
+        .nic-logo { height: 40px; filter: brightness(0) invert(1); }
+        .di-logo { height: 40px; }
+        
+        .footer-links-container { display: flex; justify-content: space-between; width: 60%; gap: 15px; }
+        .footer-link-col { display: flex; flex-direction: column; gap: 10px; }
+        .footer-link-col a { color: #fff; text-decoration: none; font-size: 13px; }
+        .footer-link-col a:hover { text-decoration: underline; }
+        
+        .sarathi-footer-bottom { background-color: #fff9c4; color: #333; text-align: center; padding: 12px 15px; font-size: 15px; font-weight: bold; max-width: 1360px; margin: 0 auto 20px auto; border-radius: 2px; }
+        
+        @media (max-width: 992px) {
+            .sarathi-footer-main { flex-direction: column; gap: 30px; }
+            .footer-logos { width: 100%; justify-content: flex-start; flex-wrap: wrap; }
+            .footer-links-container { width: 100%; flex-wrap: wrap; }
+            .footer-link-col { width: 45%; margin-bottom: 15px; }
+            .sarathi-footer-bottom { margin-left: 15px; margin-right: 15px; }
+        }
+    </style>
+    
+    <div class="sarathi-footer-wrap">
+        <div class="sarathi-footer-top">
+            Best viewed in Google Chrome 140+, Microsoft Edge 140+, Mozilla Firefox 140+, and Opera 120+ browsers. Recommended screen resolution: 1366 * 768 or higher.
+        </div>
+        
+        <div class="sarathi-footer-main">
+            <div class="footer-logos">
+                <div class="nic-section">
+                    <div class="nic-text">Designed, developed and hosted by <span>S4S</span></div>
+                    <!-- আপনার NIC লোগো এখানে বসাবেন -->
+                    <img class="nic-logo" src="https://sarathi-parivahangovin.com/wp-content/uploads/2026/08/logo-1.png" alt="NIC Logo">
+                </div>
+                <!-- আপনার Digital India লোগো এখানে বসাবেন -->
+                <img class="di-logo" src="https://sarathi-parivahangovin.com/wp-content/uploads/2026/08/digital_logo_main-1.png">
+            </div>
+            
+            <div class="footer-links-container">
+                <div class="footer-link-col">
+                    <a href="#">Dashboard</a>
+                    <a href="#">Doctor Registration</a>
+                    <a href="#">Find Doctor</a>
+                    <a href="#">Activate User Account</a>
+                </div>
+                <div class="footer-link-col">
+                    <a href="#">User Manual</a>
+                    <a href="#">Acts & Rules</a>
+                    <a href="#">Screen Reader</a>
+                </div>
+                <div class="footer-link-col">
+                    <a href="#">Contact Us</a>
+                    <a href="#">Feedback / Complaints</a>
+                    <a href="#">FAQs</a>
+                </div>
+                <div class="footer-link-col">
+                    <a href="#">Parivahan</a>
+                    <a href="#">Sitemap</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="sarathi-footer-bottom">
+            Correctness of the translation into the regional language lies with the respective State Transport Department.
+        </div>
+    </div>
+    
+    </body>
+    </html>
+    
