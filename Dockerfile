@@ -2,7 +2,7 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-RUN apk add --no-cache python3 py3-pip py3-pillow py3-opencv py3-qrcode
+RUN apk add --no-cache python3 py3-pip py3-pillow py3-opencv py3-qrcode font-dejavu font-liberation ttf-freefont
 
 COPY package.json package-lock.json ./
 RUN npm install
