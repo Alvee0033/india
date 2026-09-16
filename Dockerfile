@@ -5,7 +5,11 @@ RUN apk add --no-cache python3 py3-pip py3-pillow py3-opencv py3-qrcode
 
 WORKDIR /app
 
-# Copy application files (including node_modules)
+# Copy package files and install dependencies
+COPY package*.json ./
+RUN npm install --production=false
+
+# Copy full source
 COPY . .
 
 ENV NEXT_TELEMETRY_DISABLED 1
