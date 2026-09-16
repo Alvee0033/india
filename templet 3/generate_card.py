@@ -9,14 +9,25 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 TEMPLATE_PATH = os.path.join(BASE_DIR, "templet3.png")
 
 # Fonts
-FONT_BOLD_PATH = "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf"
-FONT_REG_PATH = "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf"
+PROJECT_ROOT = os.path.dirname(BASE_DIR)
+LOCAL_FONTS_DIR = os.path.join(PROJECT_ROOT, "fonts")
 
 def get_font(size, bold=True):
-    font_path = FONT_BOLD_PATH if bold else FONT_REG_PATH
-    if not os.path.exists(font_path):
-        font_path = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf" if bold else "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
-    return ImageFont.truetype(font_path, size)
+    candidates = [
+        os.path.join(LOCAL_FONTS_DIR, "LiberationSans-Bold.ttf" if bold else "LiberationSans-Regular.ttf"),
+        os.path.join(LOCAL_FONTS_DIR, "DejaVuSans-Bold.ttf" if bold else "DejaVuSans.ttf"),
+        "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf" if bold else "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
+        "/usr/share/fonts/liberation/LiberationSans-Bold.ttf" if bold else "/usr/share/fonts/liberation/LiberationSans-Regular.ttf",
+        "/usr/share/fonts/ttf-dejavu/DejaVuSans-Bold.ttf" if bold else "/usr/share/fonts/ttf-dejavu/DejaVuSans.ttf",
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf" if bold else "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+    ]
+    for p in candidates:
+        if os.path.exists(p):
+            try:
+                return ImageFont.truetype(p, size)
+            except Exception:
+                pass
+    return ImageFont.load_default()
 
 def extract_signature_png(sig_img: Image.Image, threshold: int = 195) -> Image.Image:
     """Extracts ink from a signature image, converting white/light paper background into transparent PNG."""
