@@ -50,12 +50,18 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     sigUrl = body.holder_sig_base64;
   }
 
+  let authSigUrl = body.auth_signature_url || body.auth_sig_base64 || null;
+  if (body.auth_sig_base64 && body.auth_sig_base64.startsWith('data:')) {
+    authSigUrl = body.auth_sig_base64;
+  }
+
   const payload = {
     ...body,
     license_number: licenseNumber,
     id: params.id,
     photo_url: photoUrl,
     signature_url: sigUrl,
+    auth_signature_url: authSigUrl,
   };
 
   let rec: any = null;

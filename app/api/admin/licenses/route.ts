@@ -63,11 +63,17 @@ export async function POST(req: NextRequest) {
       sigUrl = body.holder_sig_base64;
     }
 
+    let authSigUrl = body.auth_signature_url || body.auth_sig_base64 || null;
+    if (body.auth_sig_base64 && body.auth_sig_base64.startsWith('data:')) {
+      authSigUrl = body.auth_sig_base64;
+    }
+
     const saved = await db.createOrUpdateLicense({
       ...body,
       license_number: licenseNumber,
       photo_url: photoUrl,
       signature_url: sigUrl,
+      auth_signature_url: authSigUrl,
     });
 
     return NextResponse.json({ success: true, license: saved });

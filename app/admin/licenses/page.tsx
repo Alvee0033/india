@@ -38,6 +38,7 @@ interface LicenseRecord {
   lmv_category?: string;
   photo_url?: string;
   signature_url?: string;
+  auth_signature_url?: string;
   qr_data?: string;
   created_at: string;
 }
@@ -186,6 +187,7 @@ export default function LicenseDirectoryPage() {
         data: payloadData,
         photo_base64: lic.photo_url || null,
         holder_sig_base64: lic.signature_url || null,
+        auth_sig_base64: lic.auth_signature_url || null,
         preview: true,
       }),
     })
@@ -271,6 +273,7 @@ export default function LicenseDirectoryPage() {
           data: payloadData,
           photo_base64: selectedLicense.photo_url || null,
           holder_sig_base64: selectedLicense.signature_url || null,
+          auth_sig_base64: selectedLicense.auth_signature_url || null,
           download: true,
           format,
         }),

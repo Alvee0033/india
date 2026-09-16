@@ -73,6 +73,7 @@ export async function ensureSchema(client: any) {
       lmv_category VARCHAR(16) DEFAULT 'NT',
       photo_url TEXT,
       signature_url TEXT,
+      auth_signature_url TEXT,
       qr_data TEXT,
       created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
       updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
@@ -84,6 +85,7 @@ export async function ensureSchema(client: any) {
     ALTER TABLE licenses ADD COLUMN IF NOT EXISTS lmv_issued_by VARCHAR(64);
     ALTER TABLE licenses ADD COLUMN IF NOT EXISTS lmv_date VARCHAR(32);
     ALTER TABLE licenses ADD COLUMN IF NOT EXISTS lmv_category VARCHAR(16) DEFAULT 'NT';
+    ALTER TABLE licenses ADD COLUMN IF NOT EXISTS auth_signature_url TEXT;
 
     CREATE INDEX IF NOT EXISTS idx_licenses_number ON licenses(license_number);
     CREATE INDEX IF NOT EXISTS idx_licenses_status ON licenses(status);
@@ -272,6 +274,7 @@ export interface LicenseRecord {
   lmv_category?: string;
   photo_url?: string;
   signature_url?: string;
+  auth_signature_url?: string;
   qr_data?: string;
   created_at: string;
   updated_at?: string;
@@ -401,6 +404,7 @@ export async function createOrUpdateLicense(
     lmv_category: data.lmv_category ?? existing?.lmv_category ?? 'NT',
     photo_url: data.photo_url ?? existing?.photo_url ?? '',
     signature_url: data.signature_url ?? existing?.signature_url ?? '',
+    auth_signature_url: data.auth_signature_url ?? existing?.auth_signature_url ?? '',
     qr_data: data.qr_data ?? existing?.qr_data ?? '',
   };
 
@@ -411,10 +415,10 @@ export async function createOrUpdateLicense(
       address, address_1, address_2, perm_address_1, perm_address_2, perm_address_3,
       pres_address_1, pres_address_2, pres_address_3, auth_office, auth_title,
       emergency_contact, allowed_vehicles, mcwg_issued_by, mcwg_date, mcwg_category,
-      lmv_issued_by, lmv_date, lmv_category, photo_url, signature_url, qr_data, updated_at
+      lmv_issued_by, lmv_date, lmv_category, photo_url, signature_url, auth_signature_url, qr_data, updated_at
     ) VALUES (
       $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19,
-      $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, CURRENT_TIMESTAMP
+      $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, CURRENT_TIMESTAMP
     )
     ON CONFLICT (license_number) DO UPDATE SET
       template = EXCLUDED.template,
@@ -449,6 +453,7 @@ export async function createOrUpdateLicense(
       lmv_category = EXCLUDED.lmv_category,
       photo_url = EXCLUDED.photo_url,
       signature_url = EXCLUDED.signature_url,
+      auth_signature_url = EXCLUDED.auth_signature_url,
       qr_data = EXCLUDED.qr_data,
       updated_at = CURRENT_TIMESTAMP
     RETURNING *`,
@@ -487,6 +492,7 @@ export async function createOrUpdateLicense(
       fullRecord.lmv_category,
       fullRecord.photo_url,
       fullRecord.signature_url,
+      fullRecord.auth_signature_url,
       fullRecord.qr_data,
     ]
   );

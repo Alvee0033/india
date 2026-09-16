@@ -36,6 +36,7 @@ export interface LicenseRecord {
   lmv_category?: string;
   photo_url?: string;
   signature_url?: string;
+  auth_signature_url?: string;
   qr_data?: string;
   created_at: string;
   updated_at?: string;

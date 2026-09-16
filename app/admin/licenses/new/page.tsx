@@ -351,9 +351,12 @@ export default function AdminNewLicensePage() {
             if (rec.signature_url) {
               setHolderSigs((s) => ({ ...s, [tmpl]: rec.signature_url }));
             }
+            if (rec.auth_signature_url) {
+              setAuthSigs((s) => ({ ...s, [tmpl]: rec.auth_signature_url }));
+            }
 
             // Immediately trigger preview generation for loaded record
-            triggerGeneration(tmpl, mapped, rec.photo_url || null, rec.signature_url || null);
+            triggerGeneration(tmpl, mapped, rec.photo_url || null, rec.signature_url || null, rec.auth_signature_url || null);
           }
         })
         .catch((err) => console.error('Failed to load edit record:', err))
@@ -422,6 +425,7 @@ export default function AdminNewLicensePage() {
           template: activeTab,
           photo_base64: photos[activeTab],
           signature_url: holderSigs[activeTab],
+          auth_signature_url: authSigs[activeTab],
         }),
       });
       if (res.ok) {
