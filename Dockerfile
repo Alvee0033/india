@@ -5,9 +5,9 @@ RUN apk add --no-cache python3 py3-pip py3-pillow py3-opencv py3-qrcode
 
 WORKDIR /app
 
-# Install dependencies (including devDependencies for next build)
+# Install dependencies (regular + dev)
 COPY package*.json ./
-RUN npm ci --include=dev
+RUN npm install
 
 # Copy full source
 COPY . .
