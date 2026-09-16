@@ -8,34 +8,37 @@ from PIL import Image, ImageDraw, ImageFont
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 TEMPLATE_PATH = os.path.join(BASE_DIR, "templet.png")
 
-# Fonts
-FONT_BOLD_PATH = "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf"
-FONT_REG_PATH = "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf"
-
 def get_font(size, bold=True):
-    font_path = FONT_BOLD_PATH if bold else FONT_REG_PATH
-    if not os.path.exists(font_path):
-        font_path = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf" if bold else "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
-    return ImageFont.truetype(font_path, size)
+    font_paths = [
+        "/usr/share/fonts/ttf-dejavu/DejaVuSans-Bold.ttf" if bold else "/usr/share/fonts/ttf-dejavu/DejaVuSans.ttf",
+        "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf" if bold else "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf" if bold else "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+        "/usr/share/fonts/dejavu/DejaVuSans-Bold.ttf" if bold else "/usr/share/fonts/dejavu/DejaVuSans.ttf",
+        "/usr/share/fonts/TTF/DejaVuSans-Bold.ttf" if bold else "/usr/share/fonts/TTF/DejaVuSans.ttf",
+    ]
+    for p in font_paths:
+        if os.path.exists(p):
+            try:
+                return ImageFont.truetype(p, size)
+            except Exception:
+                pass
+    try:
+        return ImageFont.load_default(size=size)
+    except Exception:
+        return ImageFont.load_default()
 
 def get_condensed_font(size, bold=False):
-    if bold:
-        candidates = [
-            "/usr/share/fonts/truetype/roboto/unhinted/RobotoCondensed-Bold.ttf",
-            "/usr/share/fonts/truetype/dejavu/DejaVuSansCondensed-Bold.ttf",
-            "/usr/share/fonts/opentype/urw-base35/NimbusSansNarrow-Bold.otf",
-            FONT_BOLD_PATH
-        ]
-    else:
-        candidates = [
-            "/usr/share/fonts/truetype/roboto/unhinted/RobotoCondensed-Regular.ttf",
-            "/usr/share/fonts/truetype/dejavu/DejaVuSansCondensed.ttf",
-            "/usr/share/fonts/opentype/urw-base35/NimbusSansNarrow-Regular.otf",
-            FONT_REG_PATH
-        ]
+    candidates = [
+        "/usr/share/fonts/ttf-dejavu/DejaVuSansCondensed-Bold.ttf" if bold else "/usr/share/fonts/ttf-dejavu/DejaVuSansCondensed.ttf",
+        "/usr/share/fonts/truetype/dejavu/DejaVuSansCondensed-Bold.ttf" if bold else "/usr/share/fonts/truetype/dejavu/DejaVuSansCondensed.ttf",
+        "/usr/share/fonts/dejavu/DejaVuSansCondensed-Bold.ttf" if bold else "/usr/share/fonts/dejavu/DejaVuSansCondensed.ttf",
+    ]
     for p in candidates:
         if os.path.exists(p):
-            return ImageFont.truetype(p, size)
+            try:
+                return ImageFont.truetype(p, size)
+            except Exception:
+                pass
     return get_font(size, bold)
 
 def draw_cell_centered(draw, text, cx, cy, font, fill=(0, 0, 0)):
@@ -43,7 +46,9 @@ def draw_cell_centered(draw, text, cx, cy, font, fill=(0, 0, 0)):
     bbox = draw.textbbox((0, 0), text, font=font)
     w = bbox[2] - bbox[0]
     h = bbox[3] - bbox[1]
-    draw.text((cx - w / 2 - bbox[0], cy - h / 2 - bbox[1]), text, fill=fill, font=font)
+    x = cx - w / 2.0
+    y = cy - h / 2.0 - bbox[1]
+    draw.text((x, y), text, fill=fill, font=font)
 
 def extract_signature_png(sig_img: Image.Image, threshold: int = 195) -> Image.Image:
     """Extracts ink from a signature image, converting white/light paper background into transparent PNG."""
@@ -52,306 +57,163 @@ def extract_signature_png(sig_img: Image.Image, threshold: int = 195) -> Image.I
     new_data = []
     for item in datas:
         r, g, b, a = item
-        if a == 0:
-            new_data.append((0, 0, 0, 0))
-            continue
-        lum = 0.299 * r + 0.587 * g + 0.114 * b
-        if lum >= threshold:
-            new_data.append((0, 0, 0, 0))
-        elif lum > 110:
-            alpha = int(255 * (1.0 - (lum - 110) / (threshold - 110)))
-            new_data.append((min(r, 40), min(g, 40), min(b, 40), min(a, alpha)))
+        brightness = (r + g + b) / 3.0
+        if brightness > threshold:
+            new_data.append((255, 255, 255, 0))
         else:
-            new_data.append((min(r, 40), min(g, 40), min(b, 40), a))
+            alpha = int(255 * (1.0 - (brightness / float(threshold))))
+            alpha = max(140, min(255, alpha))
+            new_data.append((10, 15, 30, alpha))
     sig_img.putdata(new_data)
     return sig_img
 
 def generate_indian_dl(
-    data,
-    template_path=TEMPLATE_PATH,
-    photo_path=None,
-    signature_path=None,
-    auth_signature_path=None,
-    output_path=None,
-    preview=False
-):
-    """
-    Renders an Indian Union Driving License with both Front and Back sides.
-    All fields are fully customizable and pixel-perfect to the official card layout.
-    """
-    if not os.path.exists(template_path):
-        raise FileNotFoundError(f"Template not found at: {template_path}")
+    data: dict,
+    photo_path: str = None,
+    signature_path: str = None,
+    auth_signature_path: str = None,
+    preview_mode: bool = True
+) -> Image.Image:
 
-    card = Image.open(template_path).convert("RGBA")
+    if not os.path.exists(TEMPLATE_PATH):
+        raise FileNotFoundError(f"Template image not found: {TEMPLATE_PATH}")
+
+    card = Image.open(TEMPLATE_PATH).convert("RGBA")
     draw = ImageDraw.Draw(card)
 
-    # 1. State Name (Front Header)
-    # 'Issued by' ends at x=539. Placed with exact font match to 'Issued by' at size 66 bold
-    state = (data.get("state") or "Uttar Pradesh").strip()
-    if state:
-        draw.text((559, 112), state, fill=(0, 0, 0), font=get_font(66, True))
+    state = data.get("state", "UNION OF INDIA").upper()
+    rto = data.get("rto", "TRANSPORT DEPARTMENT").upper()
+    state_desc = data.get("state_desc", "FORM 7 - DRIVING LICENCE").upper()
+    dl_no = data.get("dl_no", "").strip()
+    doi = data.get("doi", "").strip()
 
-    # 2. State Code in Orange Circle (Center: 1685, 95)
-    state_code = (data.get("state_code") or "UP").strip()
-    if state_code:
-        badge_text = f"({state_code})" if not (state_code.startswith("(") and state_code.endswith(")")) else state_code
-        draw_cell_centered(draw, badge_text, 1685, 95, get_font(35, True))
+    name = data.get("name", "").strip().upper()
+    relation = data.get("relation", "").strip().upper()
+    rel_type = data.get("rel_type", "S/W/D").strip().upper()
+    dob = data.get("dob", "").strip()
+    blood = data.get("blood", "U").strip().upper()
+    org_donor = data.get("org_donor", "N").strip().upper()
 
-    # 3. Front Driving Licence No (Top Center)
-    # Left edge aligned with Issue Date column at x=505; vertically centered at y=256
-    dl_no = (data.get("dl_no") or "").strip()
-    if dl_no:
-        draw.text((505, 256), dl_no, fill=(0, 0, 0), font=get_font(56, True))
+    v_nt = data.get("v_nt", "").strip()
+    v_tr = data.get("v_tr", "").strip()
 
-    # 4. Dates: Issue Date, Validity NT, Validity TR
-    issue_date = (data.get("issue_date") or "").strip()
-    validity_nt = (data.get("validity_nt") or "").strip()
-    validity_tr = (data.get("validity_tr") or "").strip()
+    addr_line1 = data.get("addr_line1", "").strip().upper()
+    addr_line2 = data.get("addr_line2", "").strip().upper()
 
-    date_font = get_font(42, True)
-    if issue_date:
-        draw.text((505, 412), issue_date, fill=(0, 0, 0), font=date_font)
-    if validity_nt:
-        draw.text((794, 412), validity_nt, fill=(0, 0, 0), font=date_font)
-    if validity_tr:
-        draw.text((1117, 412), validity_tr, fill=(0, 0, 0), font=date_font)
+    badge_no = data.get("badge_no", "").strip()
 
-    # 5. Driver Photo (Box: xmin=1381, ymin=214, width=297, height=345)
+    cov_rows = data.get("cov_rows", [
+        {"cov": "MCWG", "issue_date": doi},
+        {"cov": "LMV", "issue_date": doi}
+    ])
+
+    draw.text((559, 112), state, fill=(0, 0, 0), font=get_font(66, True))
+    draw.text((559, 194), rto, fill=(0, 0, 0), font=get_font(42, True))
+    draw.text((559, 248), state_desc, fill=(0, 0, 0), font=get_font(38, True))
+
+    draw.text((559, 305), f"DL No : {dl_no}", fill=(0, 0, 0), font=get_font(56, True))
+    draw.text((1284, 305), f"DOI : {doi}", fill=(0, 0, 0), font=get_font(52, True))
+
+    draw.text((559, 396), f"Name : {name}", fill=(0, 0, 0), font=get_condensed_font(50, True))
+    draw.text((559, 461), f"{rel_type} : {relation}", fill=(0, 0, 0), font=get_condensed_font(48, True))
+
+    draw.text((559, 526), f"DOB : {dob}", fill=(0, 0, 0), font=get_font(48, True))
+    draw.text((1050, 526), f"Blood : {blood}", fill=(0, 0, 0), font=get_font(48, True))
+    draw.text((1438, 526), f"Org Donor : {org_donor}", fill=(0, 0, 0), font=get_font(48, True))
+
+    draw.text((559, 591), f"Validity (NT) : {v_nt}", fill=(0, 0, 0), font=get_font(46, True))
+    if v_tr:
+        draw.text((1240, 591), f"TR : {v_tr}", fill=(0, 0, 0), font=get_font(46, True))
+
+    draw.text((559, 656), f"Address : {addr_line1}", fill=(0, 0, 0), font=get_condensed_font(44, True))
+    if addr_line2:
+        draw.text((774, 711), addr_line2, fill=(0, 0, 0), font=get_condensed_font(44, True))
+
+    row_y_centers = [882, 942, 1002, 1062]
+
+    for idx, row in enumerate(cov_rows[:4]):
+        cy = row_y_centers[idx]
+        cov_code = str(row.get("cov", "")).upper()
+        cov_doi = str(row.get("issue_date", doi)).strip()
+
+        if cov_code:
+            draw_cell_centered(draw, cov_code, 703, cy, font=get_font(34, True))
+            draw_cell_centered(draw, cov_doi, 1145, cy, font=get_font(34, True))
+
     if photo_path and os.path.exists(photo_path):
         try:
             photo = Image.open(photo_path).convert("RGBA")
-            photo = photo.resize((297, 345), Image.Resampling.LANCZOS)
-            card.paste(photo, (1381, 214))
+            photo = photo.resize((434, 532), Image.Resampling.LANCZOS)
+            card.paste(photo, (77, 396), photo)
         except Exception as e:
-            print(f"Warning: Could not load photo: {e}")
-
-    # 6. Holder Signature Label and Signature Image
-    # In official DL format, "Holder's Signature" is printed centered beneath photo
-    f_sig_lbl = get_condensed_font(40)
-    draw_cell_centered(draw, "Holder's Signature", 1530, 665, f_sig_lbl)
+            print(f"Warning: Failed to process photo ({e})")
 
     if signature_path and os.path.exists(signature_path):
         try:
-            sig = Image.open(signature_path).convert("RGBA")
+            sig = Image.open(signature_path)
             sig = extract_signature_png(sig)
-            if sig.width > 260 or sig.width < 180:
-                new_w = 230
-                new_h = int(sig.height * (new_w / sig.width))
-                sig = sig.resize((new_w, new_h), Image.Resampling.LANCZOS)
-            card.paste(sig, (1530 - sig.width // 2, 595), sig)
+            sig = sig.resize((434, 150), Image.Resampling.LANCZOS)
+            card.paste(sig, (77, 950), sig)
         except Exception as e:
-            print(f"Warning: Could not load holder signature: {e}")
+            print(f"Warning: Failed to process signature ({e})")
 
-    # 7. Date of First Issue (Vertical text alongside photo, reading BOTTOM to TOP)
-    # Starts at bottom with 'Date' (~y=900) and ends at top with bold date value (~y=340) alongside photo
-    first_issue = (data.get("first_issue_date") or issue_date or "").strip()
-    if first_issue:
-        v_label_font = get_font(36, False)
-        v_val_font = get_font(38, True)
-        label_text = "Date Of First Issue"
-        val_text = first_issue
-
-        bb_label = draw.textbbox((0, 0), label_text, font=v_label_font)
-        w_label = bb_label[2] - bb_label[0]
-        bb_val = draw.textbbox((0, 0), val_text, font=v_val_font)
-        w_val = bb_val[2] - bb_val[0]
-
-        gap = 35
-        total_w = w_label + gap + w_val
-        max_h = max(bb_label[3] - bb_label[1], bb_val[3] - bb_val[1]) + 20
-
-        txt_img = Image.new("RGBA", (total_w + 30, max_h + 20), (255, 255, 255, 0))
-        t_draw = ImageDraw.Draw(txt_img)
-        t_draw.text((10, 10), label_text, fill=(0, 0, 0), font=v_label_font)
-        t_draw.text((10 + w_label + gap, 10), val_text, fill=(0, 0, 0), font=v_val_font)
-
-        # Rotated 90 degrees CCW: 'Date' is at bottom, date value ends at top
-        rot_img = txt_img.rotate(90, expand=True)
-        card.paste(rot_img, (1734 - rot_img.width // 2, 340), rot_img)
-
-    # 8. Personal Details (Sized up and bolded to match demo and card labels)
-    name = (data.get("name") or "").strip()
-    dob = (data.get("dob") or "").strip()
-    blood_group = (data.get("blood_group") or "").strip()
-    organ_donor = (data.get("organ_donor") or "N/A").strip()
-    relation = (data.get("relation") or "").strip()
-    address = (data.get("address") or "").strip()
-
-    if name:
-        draw.text((505, 644), name, fill=(0, 0, 0), font=get_font(54, True))
-    if dob:
-        draw.text((350, 729), dob, fill=(0, 0, 0), font=get_font(48, True))
-    if blood_group:
-        draw.text((1040, 729), blood_group, fill=(0, 0, 0), font=get_font(48, True))
-    if organ_donor:
-        draw.text((1520, 729), organ_donor, fill=(0, 0, 0), font=get_font(48, True))
-    if relation:
-        draw.text((540, 813), relation, fill=(0, 0, 0), font=get_font(48, True))
-    if address:
-        addr_font = get_font(48, True)
-        if "\n" in address:
-            lines = address.split("\n")
-            curr_y = 980
-            for line in lines:
-                draw.text((52, curr_y), line.strip(), fill=(0, 0, 0), font=addr_font)
-                curr_y += 56
-        else:
-            draw.text((52, 980), address, fill=(0, 0, 0), font=addr_font)
-
-    # ---------------- BACK SIDE ----------------
-
-    # 9. DL No on Back
-    if dl_no:
-        # Header DL No (ends at x=189 on template, placed with single space at x=203)
-        draw.text((203, 1272), dl_no, fill=(0, 0, 0), font=get_font(48, True))
-        # Small DL No at top-right of blue header bar (right-aligned to x=1640)
-        sm_font = get_font(26, True)
-        sm_bbox = draw.textbbox((0, 0), dl_no, font=sm_font)
-        sm_w = sm_bbox[2] - sm_bbox[0]
-        draw.text((1640 - sm_w, 1298), dl_no, fill=(0, 0, 0), font=sm_font)
-
-    # 10. QR Code (White box at 40, 1373, w=297, h=303)
-    qr_text = data.get("qr_data", "")
-    if not qr_text and dl_no:
-        dl_slug = dl_no.strip().replace(" ", "-").lower()
-        base_url = (data.get("base_url") or os.environ.get("VERIFY_DOMAIN", "sarathi-parivahangovin.com")).strip()
-        if not base_url.startswith("http://") and not base_url.startswith("https://"):
-            base_url = f"https://{base_url}"
-        qr_text = f"{base_url.rstrip('/')}/dl-status/{dl_slug}/"
-
-    if qr_text:
-        qr = qrcode.QRCode(
-            version=None,
-            error_correction=qrcode.constants.ERROR_CORRECT_M,
-            box_size=10,
-            border=1
-        )
-        qr.add_data(qr_text)
-        qr.make(fit=True)
-        qr_img = qr.make_image(fill_color="black", back_color="white").convert("RGBA")
-        qr_img = qr_img.resize((280, 280), Image.Resampling.LANCZOS)
-        card.paste(qr_img, (48, 1384))
-
-    # 11. Back Table (Vehicle Authorisation)
-    mcwg_issued_by = data.get("mcwg_issued_by", "").strip()
-    mcwg_date = data.get("mcwg_date", "").strip()
-    lmv_issued_by = data.get("lmv_issued_by", "").strip()
-    lmv_date = data.get("lmv_date", "").strip()
-
-    tbl_code_font = get_font(38, True)
-    tbl_date_font = get_font(36, True)
-
-    if mcwg_issued_by:
-        draw_cell_centered(draw, mcwg_issued_by, 486.5, 1857, tbl_code_font)
-    if mcwg_date:
-        draw_cell_centered(draw, mcwg_date, 712.5, 1857, tbl_date_font)
-
-    if lmv_issued_by:
-        draw_cell_centered(draw, lmv_issued_by, 486.5, 1925.5, tbl_code_font)
-    if lmv_date:
-        draw_cell_centered(draw, lmv_date, 712.5, 1925.5, tbl_date_font)
-
-    # 12. Emergency Contact Number
-    emergency_contact = (data.get("emergency_contact") or "").strip()
-    if emergency_contact:
-        draw.text((650, 2282), emergency_contact, fill=(0, 0, 0), font=get_font(40, True))
-
-    # 13. Licensing Authority Section (Bottom Right - Under Signature)
-    auth_title = ((data.get("auth_title") or "") or "Licensing Authority").strip()
-    auth_office = (data.get("auth_office") or "").strip()
-    office_lines = [line.strip() for line in auth_office.splitlines() if line.strip()]
-
-    has_auth_sig = bool(
-        auth_signature_path
-        and str(auth_signature_path).lower() != "none"
-        and os.path.exists(auth_signature_path)
-    )
-
-    # Licensing Authority text (y=2252)
-    if auth_title:
-        draw.text((1365, 2252), auth_title, fill=(0, 0, 0), font=get_condensed_font(40, bold=False))
-
-    # Fixed starting position: line 1 stays anchored at y=2298, subsequent lines go DOWN
-    office_font = get_condensed_font(42, bold=True)
-    start_office_y = 2298 if auth_title else 2260
-    for i, line in enumerate(office_lines):
-        draw.text((1365, start_office_y + i * 40), line, fill=(0, 0, 0), font=office_font)
-
-    # Authority Signature: placed bigger right ON TOP of Licensing Authority text
-    if has_auth_sig:
+    if auth_signature_path and os.path.exists(auth_signature_path):
         try:
-            auth_sig = Image.open(auth_signature_path).convert("RGBA")
+            auth_sig = Image.open(auth_signature_path)
             auth_sig = extract_signature_png(auth_sig)
-            sig_w = 340
-            sig_h = int(auth_sig.height * (sig_w / auth_sig.width))
-            if sig_h > 120:
-                sig_h = 120
-                sig_w = int(auth_sig.width * (sig_h / auth_sig.height))
-            auth_sig = auth_sig.resize((sig_w, sig_h), Image.Resampling.LANCZOS)
-            sig_x = 1525 - sig_w // 2
-            sig_y = 2246 - sig_h // 2
-            card.paste(auth_sig, (sig_x, sig_y), auth_sig)
+            auth_sig = auth_sig.resize((350, 130), Image.Resampling.LANCZOS)
+            card.paste(auth_sig, (1350, 950), auth_sig)
         except Exception as e:
-            print(f"Warning: Could not load authority signature: {e}")
+            print(f"Warning: Failed to process auth signature ({e})")
 
-    # Save
-    if output_path:
-        out_dir = os.path.dirname(output_path)
-        if out_dir:
-            os.makedirs(out_dir, exist_ok=True)
-        final_img = card.convert("RGB")
-        if preview:
-            final_img.thumbnail((1200, 1800), Image.Resampling.LANCZOS)
-            final_img.save(output_path, "JPEG", quality=88, optimize=True)
-        else:
-            final_img.save(output_path, "PNG", quality=95)
-        print(f"Card generated successfully: {output_path}")
+    base_url = data.get("base_url", "https://sarathi.parivahan.gov.in").rstrip("/")
+    qr_content = f"{base_url}/dl-status/{dl_no}"
+
+    qr = qrcode.QRCode(
+        version=1,
+        error_correction=qrcode.constants.ERROR_CORRECT_M,
+        box_size=10,
+        border=1,
+    )
+    qr.add_data(qr_content)
+    qr.make(fit=True)
+    qr_img = qr.make_image(fill_color="black", back_color="white").convert("RGBA")
+    qr_img = qr_img.resize((330, 330), Image.Resampling.LANCZOS)
+    card.paste(qr_img, (1400, 420), qr_img)
+
+    if preview_mode:
+        card = card.resize((896, 1200), Image.Resampling.LANCZOS)
 
     return card
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Generate Indian Union Driving License")
-    parser.add_argument("--json", help="Path to JSON file with DL data")
-    parser.add_argument("--photo", help="Path to driver photo", default=os.path.join(BASE_DIR, "sample_photo.jpg"))
-    parser.add_argument("--signature", help="Path to holder signature", default=os.path.join(BASE_DIR, "sample_holder_signature_clean.png"))
-    parser.add_argument("--auth-signature", help="Path to authority signature", default="none")
-    parser.add_argument("--output", help="Path for output image", default=os.path.join(BASE_DIR, "test_demo_result.png"))
-    parser.add_argument("--preview", action="store_true", help="Generate fast web-optimized preview image")
+    parser = argparse.ArgumentParser(description="Generate Indian DL Card")
+    parser.add_argument("--json", required=True, help="Path to JSON data file")
+    parser.add_argument("--output", required=True, help="Output PNG path")
+    parser.add_argument("--preview", action="store_true", help="Generate fast web preview resolution")
+    parser.add_argument("--photo", default=None, help="Path to holder photo")
+    parser.add_argument("--signature", default=None, help="Path to holder signature")
+    parser.add_argument("--auth-signature", default=None, help="Path to authority signature")
+    parser.add_argument("--auth_signature", default=None, help="Alias path to authority signature")
+
     args = parser.parse_args()
 
-    demo_data = {
-        "state": "Uttar Pradesh",
-        "state_code": "UP",
-        "dl_no": "UP63 08848623226",
-        "issue_date": "30-12-2020",
-        "validity_nt": "30-12-2030",
-        "validity_tr": "30-12-2030",
-        "first_issue_date": "30-12-2020",
-        "name": "Shivam Shahi",
-        "dob": "11-07-2002",
-        "blood_group": "A+",
-        "organ_donor": "N/A",
-        "relation": "Santosh Shahi",
-        "address": "GOPALRAOPET,TELANGANA,INDIA",
-        "mcwg_issued_by": "UPoo",
-        "mcwg_date": "30-12-2020",
-        "lmv_issued_by": "UPoo",
-        "lmv_date": "30-12-2020",
-        "emergency_contact": "",
-        "auth_title": "Licensing Authority",
-        "auth_office": "UP00 MEERUT"
-    }
+    with open(args.json, "r", encoding="utf-8") as f:
+        dl_data = json.load(f)
 
-    if args.json and os.path.exists(args.json):
-        with open(args.json, "r", encoding="utf-8") as f:
-            demo_data = json.load(f)
+    photo_p = args.photo if args.photo and args.photo != "none" else None
+    sig_p = args.signature if args.signature and args.signature != "none" else None
+    auth_p = args.auth_signature or args.auth_signature
+    if auth_p == "none":
+        auth_p = None
 
-    generate_indian_dl(
-        data=demo_data,
-        photo_path=args.photo,
-        signature_path=args.signature,
-        auth_signature_path=args.auth_signature,
-        output_path=args.output,
-        preview=args.preview
+    result_card = generate_indian_dl(
+        data=dl_data,
+        photo_path=photo_p,
+        signature_path=sig_p,
+        auth_signature_path=auth_p,
+        preview_mode=args.preview
     )
 
+    result_card.convert("RGB").save(args.output, "PNG")
+    print(f"DL Card generated successfully at {args.output}")
