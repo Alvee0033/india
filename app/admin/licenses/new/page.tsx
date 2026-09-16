@@ -369,7 +369,7 @@ export default function AdminNewLicensePage() {
     }
   }, [triggerGeneration]);
 
-  // Live real-time preview (500ms debounce) on user changes
+  // Live real-time preview (120ms debounce) on user changes
   useEffect(() => {
     if (isInitialMount.current) {
       isInitialMount.current = false;
@@ -377,7 +377,7 @@ export default function AdminNewLicensePage() {
     }
     const timer = setTimeout(() => {
       triggerGeneration(activeTab, formData[activeTab]);
-    }, 500);
+    }, 120);
     return () => clearTimeout(timer);
   }, [formData, photos, holderSigs, authSigs, activeTab, triggerGeneration]);
 
