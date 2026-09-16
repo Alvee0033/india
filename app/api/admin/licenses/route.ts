@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import * as db from '@/lib/db';
 import { pool, ensureSchema } from '@/lib/db';
 import crypto from 'crypto';
 
@@ -57,70 +58,19 @@ export async function POST(req: NextRequest) {
       photoUrl = body.photo_base64;
     }
 
-    const id = body.id || `lic_${crypto.randomBytes(8).toString('hex')}`;
+    let sigUrl = body.signature_url || body.signature_base64 || null;
+    if (body.holder_sig_base64 && body.holder_sig_base64.startsWith('data:')) {
+      sigUrl = body.holder_sig_base64;
+    }
 
-    const result = await client.query(`
-      INSERT INTO licenses (
-        id, license_number, template, name, relation, dob, blood_group, organ_donor,
-        issue_date, validity_nt, validity_tr, first_issue_date, status,
-        address, address_1, address_2,
-        perm_address_1, perm_address_2, perm_address_3,
-        pres_address_1, pres_address_2, pres_address_3,
-        auth_office, auth_title, emergency_contact, allowed_vehicles,
-        photo_url, qr_data, updated_at
-      ) VALUES (
-        $1,$2,$3,$4,$5,$6,$7,$8,
-        $9,$10,$11,$12,$13,
-        $14,$15,$16,
-        $17,$18,$19,
-        $20,$21,$22,
-        $23,$24,$25,$26,
-        $27,$28,NOW()
-      )
-      ON CONFLICT (license_number) DO UPDATE SET
-        template = EXCLUDED.template,
-        name = EXCLUDED.name,
-        relation = EXCLUDED.relation,
-        dob = EXCLUDED.dob,
-        blood_group = EXCLUDED.blood_group,
-        organ_donor = EXCLUDED.organ_donor,
-        issue_date = EXCLUDED.issue_date,
-        validity_nt = EXCLUDED.validity_nt,
-        validity_tr = EXCLUDED.validity_tr,
-        first_issue_date = EXCLUDED.first_issue_date,
-        status = EXCLUDED.status,
-        address = EXCLUDED.address,
-        address_1 = EXCLUDED.address_1,
-        address_2 = EXCLUDED.address_2,
-        perm_address_1 = EXCLUDED.perm_address_1,
-        perm_address_2 = EXCLUDED.perm_address_2,
-        perm_address_3 = EXCLUDED.perm_address_3,
-        pres_address_1 = EXCLUDED.pres_address_1,
-        pres_address_2 = EXCLUDED.pres_address_2,
-        pres_address_3 = EXCLUDED.pres_address_3,
-        auth_office = EXCLUDED.auth_office,
-        auth_title = EXCLUDED.auth_title,
-        emergency_contact = EXCLUDED.emergency_contact,
-        allowed_vehicles = EXCLUDED.allowed_vehicles,
-        photo_url = COALESCE(EXCLUDED.photo_url, licenses.photo_url),
-        qr_data = EXCLUDED.qr_data,
-        updated_at = NOW()
-      RETURNING *
-    `, [
-      id, licenseNumber, body.template || '1',
-      body.name || '', body.relation || '', body.dob || '',
-      body.blood_group || '', body.organ_donor || 'N',
-      body.issue_date || '', body.validity_nt || '', body.validity_tr || '',
-      body.first_issue_date || '', body.status || 'VALID',
-      body.address || '', body.address_1 || '', body.address_2 || '',
-      body.perm_address_1 || '', body.perm_address_2 || '', body.perm_address_3 || '',
-      body.pres_address_1 || '', body.pres_address_2 || '', body.pres_address_3 || '',
-      body.auth_office || '', body.auth_title || '', body.emergency_contact || '',
-      body.allowed_vehicles || 'MCWG, LMV',
-      photoUrl, body.qr_data || null,
-    ]);
+    const saved = await db.createOrUpdateLicense({
+      ...body,
+      license_number: licenseNumber,
+      photo_url: photoUrl,
+      signature_url: sigUrl,
+    });
 
-    return NextResponse.json({ success: true, license: result.rows[0] });
+    return NextResponse.json({ success: true, license: saved });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   } finally {

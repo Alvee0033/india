@@ -269,25 +269,24 @@ export default function AdminNewLicensePage() {
     triggerGeneration(newTab, formData[newTab]);
   };
 
-  // Initial query param check and edit record pre-fill (Runs ONCE per editParam)
+  // Initial query param check and edit record pre-fill
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const params = new URLSearchParams(window.location.search);
     const editParam = params.get('edit') || params.get('id');
     const tParam = params.get('t') as TemplateId;
-    if (tParam && (tParam === '1' || tParam === '2' || tParam === '3')) {
-      setActiveTab(tParam);
-    }
 
-    if (editParam && loadedEditIdRef.current !== editParam) {
+    if (editParam) {
+      if (loadedEditIdRef.current === editParam) return;
       loadedEditIdRef.current = editParam;
       setLoadingEdit(true);
+
       fetch(`/api/admin/licenses/${encodeURIComponent(editParam)}`)
         .then((r) => r.json())
         .then((rec) => {
           if (rec && !rec.error) {
             const tmpl: TemplateId =
-              rec.template === '2' || rec.template === '3' ? rec.template : '1';
+              rec.template === '2' || rec.template === '3' ? rec.template : (tParam || '1');
             setActiveTab(tmpl);
             setEditId(rec.id);
             setEditingLicNumber(rec.license_number || rec.dl_no || rec.id);
@@ -353,16 +352,22 @@ export default function AdminNewLicensePage() {
               setHolderSigs((s) => ({ ...s, [tmpl]: rec.signature_url }));
             }
 
-            // Immediately trigger generation for edit record
+            // Immediately trigger preview generation for loaded record
             triggerGeneration(tmpl, mapped, rec.photo_url || null, rec.signature_url || null);
           }
         })
         .catch((err) => console.error('Failed to load edit record:', err))
         .finally(() => setLoadingEdit(false));
-    } else if (!editParam && isInitialMount.current) {
-      triggerGeneration(activeTab, formData[activeTab]);
+    } else {
+      if (tParam && (tParam === '1' || tParam === '2' || tParam === '3')) {
+        setActiveTab(tParam);
+      }
+      if (isInitialMount.current) {
+        const initialTab = tParam && (tParam === '1' || tParam === '2' || tParam === '3') ? tParam : '1';
+        triggerGeneration(initialTab, formData[initialTab]);
+      }
     }
-  }, [triggerGeneration, activeTab]);
+  }, [triggerGeneration]);
 
   // Live real-time preview (500ms debounce) on user changes
   useEffect(() => {

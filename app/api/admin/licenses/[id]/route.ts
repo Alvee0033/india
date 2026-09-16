@@ -39,13 +39,32 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   if (!licenseNumber) {
     return NextResponse.json({ error: 'License number is required' }, { status: 400 });
   }
+
+  let photoUrl = body.photo_url || null;
+  if (body.photo_base64 && body.photo_base64.startsWith('data:')) {
+    photoUrl = body.photo_base64;
+  }
+
+  let sigUrl = body.signature_url || body.signature_base64 || null;
+  if (body.holder_sig_base64 && body.holder_sig_base64.startsWith('data:')) {
+    sigUrl = body.holder_sig_base64;
+  }
+
+  const payload = {
+    ...body,
+    license_number: licenseNumber,
+    id: params.id,
+    photo_url: photoUrl,
+    signature_url: sigUrl,
+  };
+
   let rec: any = null;
   try {
-    rec = await db.createOrUpdateLicense({ ...body, license_number: licenseNumber, id: params.id });
+    rec = await db.createOrUpdateLicense(payload);
   } catch (e) {
     console.error('DB PUT error, falling back to storage:', e);
   }
-  const storageRec = storage.createOrUpdateLicense({ ...body, license_number: licenseNumber, id: params.id });
+  const storageRec = storage.createOrUpdateLicense(payload);
   return NextResponse.json({ success: true, license: rec || storageRec });
 }
 
