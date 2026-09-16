@@ -1,18 +1,15 @@
-FROM node:20-alpine AS base
+FROM node:20-alpine AS builder
 
 # Install python3 and required packages for PIL & OpenCV card generation
 RUN apk add --no-cache python3 py3-pip py3-pillow py3-opencv py3-qrcode
 
 WORKDIR /app
 
-# Install dependencies (regular + dev)
-COPY package*.json ./
-RUN npm install
+COPY package.json package-lock.json ./
+RUN npm ci
 
-# Copy full source
 COPY . .
 
-# Build Next.js app
 ENV NEXT_TELEMETRY_DISABLED 1
 RUN npm run build
 
