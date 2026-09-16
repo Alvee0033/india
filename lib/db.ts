@@ -65,12 +65,25 @@ export async function ensureSchema(client: any) {
       auth_title VARCHAR(255),
       emergency_contact VARCHAR(64),
       allowed_vehicles VARCHAR(255) DEFAULT 'MCWG, LMV',
+      mcwg_issued_by VARCHAR(64),
+      mcwg_date VARCHAR(32),
+      mcwg_category VARCHAR(16) DEFAULT 'NT',
+      lmv_issued_by VARCHAR(64),
+      lmv_date VARCHAR(32),
+      lmv_category VARCHAR(16) DEFAULT 'NT',
       photo_url TEXT,
       signature_url TEXT,
       qr_data TEXT,
       created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
       updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
     );
+
+    ALTER TABLE licenses ADD COLUMN IF NOT EXISTS mcwg_issued_by VARCHAR(64);
+    ALTER TABLE licenses ADD COLUMN IF NOT EXISTS mcwg_date VARCHAR(32);
+    ALTER TABLE licenses ADD COLUMN IF NOT EXISTS mcwg_category VARCHAR(16) DEFAULT 'NT';
+    ALTER TABLE licenses ADD COLUMN IF NOT EXISTS lmv_issued_by VARCHAR(64);
+    ALTER TABLE licenses ADD COLUMN IF NOT EXISTS lmv_date VARCHAR(32);
+    ALTER TABLE licenses ADD COLUMN IF NOT EXISTS lmv_category VARCHAR(16) DEFAULT 'NT';
 
     CREATE INDEX IF NOT EXISTS idx_licenses_number ON licenses(license_number);
     CREATE INDEX IF NOT EXISTS idx_licenses_status ON licenses(status);
@@ -251,6 +264,12 @@ export interface LicenseRecord {
   auth_title?: string;
   emergency_contact?: string;
   allowed_vehicles?: string;
+  mcwg_issued_by?: string;
+  mcwg_date?: string;
+  mcwg_category?: string;
+  lmv_issued_by?: string;
+  lmv_date?: string;
+  lmv_category?: string;
   photo_url?: string;
   signature_url?: string;
   qr_data?: string;
@@ -318,27 +337,24 @@ export async function findLicenseForVerification(search: {
   );
 
   if (!rows || rows.length === 0) return null;
-  const match = rows[0];
 
+  // If DOB provided, verify match (DD-MM-YYYY or YYYY-MM-DD)
   if (search.dob && search.dob.trim()) {
-    const cleanSearchDob = search.dob.replace(/[\s\-_/.]/g, '');
-    const cleanRecordDob = (match.dob || '').replace(/[\s\-_/.]/g, '');
-    if (cleanRecordDob && cleanSearchDob && cleanRecordDob !== cleanSearchDob) {
+    const cleanDob = search.dob.replace(/[\s\-_/.]/g, '');
+    const recDob = (rows[0].dob || '').replace(/[\s\-_/.]/g, '');
+    if (recDob && cleanDob && recDob !== cleanDob) {
       return null;
     }
   }
 
-  return match;
+  return rows[0];
 }
 
 export async function getLicenseById(id: string): Promise<LicenseRecord | null> {
-  const cleanId = (id || '').replace(/[\s\-_/.]/g, '').toUpperCase();
+  const clean = id.trim();
   const rows = await query<LicenseRecord>(
-    `SELECT * FROM licenses 
-     WHERE id = $1 
-        OR UPPER(REGEXP_REPLACE(license_number, '[\\s\\-_/.]', '', 'g')) = $2
-     LIMIT 1`,
-    [id, cleanId]
+    'SELECT * FROM licenses WHERE id = $1 OR UPPER(license_number) = UPPER($2) LIMIT 1',
+    [clean, clean]
   );
   return rows[0] || null;
 }
@@ -377,6 +393,12 @@ export async function createOrUpdateLicense(
     auth_title: data.auth_title ?? existing?.auth_title ?? '',
     emergency_contact: data.emergency_contact ?? existing?.emergency_contact ?? '',
     allowed_vehicles: data.allowed_vehicles ?? existing?.allowed_vehicles ?? 'MCWG, LMV',
+    mcwg_issued_by: data.mcwg_issued_by ?? existing?.mcwg_issued_by ?? '',
+    mcwg_date: data.mcwg_date ?? existing?.mcwg_date ?? '',
+    mcwg_category: data.mcwg_category ?? existing?.mcwg_category ?? 'NT',
+    lmv_issued_by: data.lmv_issued_by ?? existing?.lmv_issued_by ?? '',
+    lmv_date: data.lmv_date ?? existing?.lmv_date ?? '',
+    lmv_category: data.lmv_category ?? existing?.lmv_category ?? 'NT',
     photo_url: data.photo_url ?? existing?.photo_url ?? '',
     signature_url: data.signature_url ?? existing?.signature_url ?? '',
     qr_data: data.qr_data ?? existing?.qr_data ?? '',
@@ -388,10 +410,11 @@ export async function createOrUpdateLicense(
       issue_date, validity_nt, validity_tr, first_issue_date, status,
       address, address_1, address_2, perm_address_1, perm_address_2, perm_address_3,
       pres_address_1, pres_address_2, pres_address_3, auth_office, auth_title,
-      emergency_contact, allowed_vehicles, photo_url, signature_url, qr_data, updated_at
+      emergency_contact, allowed_vehicles, mcwg_issued_by, mcwg_date, mcwg_category,
+      lmv_issued_by, lmv_date, lmv_category, photo_url, signature_url, qr_data, updated_at
     ) VALUES (
       $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19,
-      $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, CURRENT_TIMESTAMP
+      $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, CURRENT_TIMESTAMP
     )
     ON CONFLICT (license_number) DO UPDATE SET
       template = EXCLUDED.template,
@@ -418,6 +441,12 @@ export async function createOrUpdateLicense(
       auth_title = EXCLUDED.auth_title,
       emergency_contact = EXCLUDED.emergency_contact,
       allowed_vehicles = EXCLUDED.allowed_vehicles,
+      mcwg_issued_by = EXCLUDED.mcwg_issued_by,
+      mcwg_date = EXCLUDED.mcwg_date,
+      mcwg_category = EXCLUDED.mcwg_category,
+      lmv_issued_by = EXCLUDED.lmv_issued_by,
+      lmv_date = EXCLUDED.lmv_date,
+      lmv_category = EXCLUDED.lmv_category,
       photo_url = EXCLUDED.photo_url,
       signature_url = EXCLUDED.signature_url,
       qr_data = EXCLUDED.qr_data,
@@ -450,6 +479,12 @@ export async function createOrUpdateLicense(
       fullRecord.auth_title,
       fullRecord.emergency_contact,
       fullRecord.allowed_vehicles,
+      fullRecord.mcwg_issued_by,
+      fullRecord.mcwg_date,
+      fullRecord.mcwg_category,
+      fullRecord.lmv_issued_by,
+      fullRecord.lmv_date,
+      fullRecord.lmv_category,
       fullRecord.photo_url,
       fullRecord.signature_url,
       fullRecord.qr_data,

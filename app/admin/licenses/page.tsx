@@ -30,6 +30,12 @@ interface LicenseRecord {
   auth_title?: string;
   emergency_contact?: string;
   allowed_vehicles?: string;
+  mcwg_issued_by?: string;
+  mcwg_date?: string;
+  mcwg_category?: string;
+  lmv_issued_by?: string;
+  lmv_date?: string;
+  lmv_category?: string;
   photo_url?: string;
   signature_url?: string;
   qr_data?: string;
@@ -145,6 +151,14 @@ export default function LicenseDirectoryPage() {
       auth_title: lic.auth_title || 'Licensing Authority',
       emergency_contact: lic.emergency_contact || '',
       allowed_vehicles: lic.allowed_vehicles || 'MCWG, LMV',
+      mcwg_code: 'MCWG',
+      mcwg_issued_by: lic.mcwg_issued_by || '',
+      mcwg_date: lic.mcwg_date || lic.issue_date || '',
+      mcwg_category: lic.mcwg_category || 'NT',
+      lmv_code: 'LMV',
+      lmv_issued_by: lic.lmv_issued_by || '',
+      lmv_date: lic.lmv_date || lic.issue_date || '',
+      lmv_category: lic.lmv_category || 'NT',
     };
 
     if (t === '1') {
@@ -218,6 +232,14 @@ export default function LicenseDirectoryPage() {
       auth_title: selectedLicense.auth_title || 'Licensing Authority',
       emergency_contact: selectedLicense.emergency_contact || '',
       allowed_vehicles: selectedLicense.allowed_vehicles || 'MCWG, LMV',
+      mcwg_code: 'MCWG',
+      mcwg_issued_by: selectedLicense.mcwg_issued_by || '',
+      mcwg_date: selectedLicense.mcwg_date || selectedLicense.issue_date || '',
+      mcwg_category: selectedLicense.mcwg_category || 'NT',
+      lmv_code: 'LMV',
+      lmv_issued_by: selectedLicense.lmv_issued_by || '',
+      lmv_date: selectedLicense.lmv_date || selectedLicense.issue_date || '',
+      lmv_category: selectedLicense.lmv_category || 'NT',
     };
 
     if (t === '1') {

@@ -28,6 +28,15 @@ export interface LicenseRecord {
   auth_title?: string;
   emergency_contact?: string;
   allowed_vehicles?: string;
+  mcwg_issued_by?: string;
+  mcwg_date?: string;
+  mcwg_category?: string;
+  lmv_issued_by?: string;
+  lmv_date?: string;
+  lmv_category?: string;
+  photo_url?: string;
+  signature_url?: string;
+  qr_data?: string;
   created_at: string;
   updated_at?: string;
 }

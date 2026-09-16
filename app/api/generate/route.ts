@@ -35,7 +35,12 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { template = '1', data = {}, photo_base64, holder_sig_base64, auth_sig_base64, preview = true, download = false, format = 'png' } = body;
 
-    const tStr = String(template);
+    // Normalize template: handle "1", "2", "3", "templet 1", "template 2", etc.
+    let tStr = String(template || '1').trim().toLowerCase();
+    tStr = tStr.replace(/^templet\s*/i, '').replace(/^template\s*/i, '').trim();
+    if (!['1', '2', '3'].includes(tStr)) {
+      tStr = '1';
+    }
     const templateDir = path.join(BASE_DIR, `templet ${tStr}`);
 
     if (!existsSync(templateDir)) {
