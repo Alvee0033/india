@@ -8,17 +8,72 @@ import { promisify } from 'util';
 const execFileAsync = promisify(execFile);
 const BASE_DIR = process.env.BASE_DIR || process.cwd();
 
-function saveB64Temp(b64: string | null | undefined, filename: string): string | null {
-  if (!b64 || typeof b64 !== 'string') return null;
+async function saveImageTemp(input: string | null | undefined, filename: string): Promise<string | null> {
+  if (!input || typeof input !== 'string') return null;
   try {
-    let clean = b64.trim();
-    if (clean.startsWith('blob:')) return null;
+    let clean = input.trim();
+    if (!clean || clean.startsWith('blob:')) return null;
+
+    const p = path.join(os.tmpdir(), filename);
+
+    // 1. If it is a local or relative /uploads path
+    if (clean.startsWith('/uploads/') || clean.startsWith('uploads/')) {
+      const rel = clean.startsWith('/') ? clean.slice(1) : clean;
+      const localPath = path.join(BASE_DIR, 'public', rel);
+      if (existsSync(localPath)) {
+        const buf = readFileSync(localPath);
+        if (buf.length > 0) {
+          writeFileSync(p, buf);
+          return p;
+        }
+      }
+      // Fallback: fetch from dlimsvitpk.com
+      try {
+        const remoteUrl = `https://dlimsvitpk.com/${rel}`;
+        const res = await fetch(remoteUrl, {
+          headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' },
+        });
+        if (res.ok) {
+          const arrBuf = await res.arrayBuffer();
+          const buf = Buffer.from(arrBuf);
+          if (buf.length > 0) {
+            writeFileSync(p, buf);
+            try {
+              writeFileSync(localPath, buf);
+            } catch {}
+            return p;
+          }
+        }
+      } catch (err) {
+        console.error('Failed to fetch remote upload for card generator:', err);
+      }
+    }
+
+    // 2. If it is an HTTP/HTTPS URL
+    if (clean.startsWith('http://') || clean.startsWith('https://')) {
+      try {
+        const res = await fetch(clean, {
+          headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' },
+        });
+        if (res.ok) {
+          const arrBuf = await res.arrayBuffer();
+          const buf = Buffer.from(arrBuf);
+          if (buf.length > 0) {
+            writeFileSync(p, buf);
+            return p;
+          }
+        }
+      } catch (err) {
+        console.error('Failed to fetch image URL for card generator:', err);
+      }
+    }
+
+    // 3. If base64 data
     if (clean.includes(',')) {
       clean = clean.split(',')[1];
     }
     const buf = Buffer.from(clean, 'base64');
     if (buf.length === 0) return null;
-    const p = path.join(os.tmpdir(), filename);
     writeFileSync(p, buf);
     return p;
   } catch {
@@ -69,10 +124,12 @@ export async function POST(req: NextRequest) {
 
     writeFileSync(tmpJson, JSON.stringify(cleanData, null, 2));
 
-    // Optional user-uploaded images
-    const photoTmp  = saveB64Temp(photo_base64,       `dl_photo_${ts}.png`);
-    const holderTmp = saveB64Temp(holder_sig_base64,  `dl_hsig_${ts}.png`);
-    const authTmp   = saveB64Temp(auth_sig_base64,    `dl_asig_${ts}.png`);
+    // Optional user-uploaded images (supports base64, /uploads/ paths, and URLs)
+    const [photoTmp, holderTmp, authTmp] = await Promise.all([
+      saveImageTemp(photo_base64, `dl_photo_${ts}.png`),
+      saveImageTemp(holder_sig_base64, `dl_hsig_${ts}.png`),
+      saveImageTemp(auth_sig_base64, `dl_asig_${ts}.png`),
+    ]);
     if (photoTmp)  tmpFiles.push(photoTmp);
     if (holderTmp) tmpFiles.push(holderTmp);
     if (authTmp)   tmpFiles.push(authTmp);
