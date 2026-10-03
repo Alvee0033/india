@@ -213,8 +213,6 @@ export default function AdminNewLicensePage() {
 
       const payloadData = { ...currentData };
       if (currentTab === '1') {
-        payloadData.state = 'Uttar Pradesh';
-        payloadData.state_code = 'UP';
         payloadData.auth_title = payloadData.auth_title || 'Licensing Authority';
       }
       payloadData.mcwg_code = payloadData.mcwg_code || 'MCWG';
@@ -395,8 +393,6 @@ export default function AdminNewLicensePage() {
   const handleSaveToDirectory = async () => {
     const d = { ...formData[activeTab] };
     if (activeTab === '1') {
-      d.state = 'Uttar Pradesh';
-      d.state_code = 'UP';
       d.auth_title = d.auth_title || 'Licensing Authority';
     }
     d.mcwg_code = d.mcwg_code || 'MCWG';
@@ -455,8 +451,6 @@ export default function AdminNewLicensePage() {
     }
     const downloadData = { ...formData[activeTab] };
     if (activeTab === '1') {
-      downloadData.state = 'Uttar Pradesh';
-      downloadData.state_code = 'UP';
       downloadData.auth_title = downloadData.auth_title || 'Licensing Authority';
     }
     downloadData.mcwg_code = downloadData.mcwg_code || 'MCWG';
@@ -784,6 +778,31 @@ export default function AdminNewLicensePage() {
                     onChange={(e) => updateField('dl_no', e.target.value)}
                   />
                 </div>
+
+                {activeTab === '1' && (
+                  <>
+                    <div className="col-12 col-md-6">
+                      <label className="form-label small fw-bold text-secondary mb-1">STATE NAME</label>
+                      <input
+                        type="text"
+                        className="form-control"
+                        placeholder="e.g. Uttar Pradesh"
+                        value={currentData.state || ''}
+                        onChange={(e) => updateField('state', e.target.value)}
+                      />
+                    </div>
+                    <div className="col-12 col-md-6">
+                      <label className="form-label small fw-bold text-secondary mb-1">STATE CODE</label>
+                      <input
+                        type="text"
+                        className="form-control"
+                        placeholder="e.g. UP"
+                        value={currentData.state_code || ''}
+                        onChange={(e) => updateField('state_code', e.target.value)}
+                      />
+                    </div>
+                  </>
+                )}
 
                 {activeTab === '2' && (
                   <div className="col-12 col-md-6">

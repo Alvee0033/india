@@ -163,8 +163,6 @@ export default function LicenseDirectoryPage() {
     };
 
     if (t === '1') {
-      payloadData.state = 'Uttar Pradesh';
-      payloadData.state_code = 'UP';
       payloadData.address = lic.address || lic.address_1 || '';
     } else if (t === '2') {
       payloadData.address_1 = lic.address_1 || lic.address || '';
@@ -245,8 +243,6 @@ export default function LicenseDirectoryPage() {
     };
 
     if (t === '1') {
-      payloadData.state = 'Uttar Pradesh';
-      payloadData.state_code = 'UP';
       payloadData.address = selectedLicense.address || selectedLicense.address_1 || '';
     } else if (t === '2') {
       payloadData.address_1 = selectedLicense.address_1 || selectedLicense.address || '';

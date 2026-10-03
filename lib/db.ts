@@ -68,6 +68,8 @@ export async function ensureSchema(client: any) {
       mcwg_issued_by VARCHAR(64),
       mcwg_date VARCHAR(32),
       mcwg_category VARCHAR(16) DEFAULT 'NT',
+      state VARCHAR(255),
+      state_code VARCHAR(16),
       lmv_issued_by VARCHAR(64),
       lmv_date VARCHAR(32),
       lmv_category VARCHAR(16) DEFAULT 'NT',
@@ -86,6 +88,8 @@ export async function ensureSchema(client: any) {
     ALTER TABLE licenses ADD COLUMN IF NOT EXISTS lmv_date VARCHAR(32);
     ALTER TABLE licenses ADD COLUMN IF NOT EXISTS lmv_category VARCHAR(16) DEFAULT 'NT';
     ALTER TABLE licenses ADD COLUMN IF NOT EXISTS auth_signature_url TEXT;
+    ALTER TABLE licenses ADD COLUMN IF NOT EXISTS state VARCHAR(255);
+    ALTER TABLE licenses ADD COLUMN IF NOT EXISTS state_code VARCHAR(16);
 
     CREATE INDEX IF NOT EXISTS idx_licenses_number ON licenses(license_number);
     CREATE INDEX IF NOT EXISTS idx_licenses_status ON licenses(status);
@@ -269,6 +273,8 @@ export interface LicenseRecord {
   mcwg_issued_by?: string;
   mcwg_date?: string;
   mcwg_category?: string;
+  state?: string;
+  state_code?: string;
   lmv_issued_by?: string;
   lmv_date?: string;
   lmv_category?: string;
@@ -399,6 +405,8 @@ export async function createOrUpdateLicense(
     mcwg_issued_by: data.mcwg_issued_by ?? existing?.mcwg_issued_by ?? '',
     mcwg_date: data.mcwg_date ?? existing?.mcwg_date ?? '',
     mcwg_category: data.mcwg_category ?? existing?.mcwg_category ?? 'NT',
+    state: data.state ?? existing?.state ?? 'Uttar Pradesh',
+    state_code: data.state_code ?? existing?.state_code ?? 'UP',
     lmv_issued_by: data.lmv_issued_by ?? existing?.lmv_issued_by ?? '',
     lmv_date: data.lmv_date ?? existing?.lmv_date ?? '',
     lmv_category: data.lmv_category ?? existing?.lmv_category ?? 'NT',
@@ -414,11 +422,11 @@ export async function createOrUpdateLicense(
       issue_date, validity_nt, validity_tr, first_issue_date, status,
       address, address_1, address_2, perm_address_1, perm_address_2, perm_address_3,
       pres_address_1, pres_address_2, pres_address_3, auth_office, auth_title,
-      emergency_contact, allowed_vehicles, mcwg_issued_by, mcwg_date, mcwg_category,
+      emergency_contact, allowed_vehicles, mcwg_issued_by, mcwg_date, mcwg_category, state, state_code,
       lmv_issued_by, lmv_date, lmv_category, photo_url, signature_url, auth_signature_url, qr_data, updated_at
     ) VALUES (
       $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19,
-      $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, CURRENT_TIMESTAMP
+      $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, CURRENT_TIMESTAMP
     )
     ON CONFLICT (license_number) DO UPDATE SET
       template = EXCLUDED.template,
@@ -448,6 +456,8 @@ export async function createOrUpdateLicense(
       mcwg_issued_by = EXCLUDED.mcwg_issued_by,
       mcwg_date = EXCLUDED.mcwg_date,
       mcwg_category = EXCLUDED.mcwg_category,
+      state = EXCLUDED.state,
+      state_code = EXCLUDED.state_code,
       lmv_issued_by = EXCLUDED.lmv_issued_by,
       lmv_date = EXCLUDED.lmv_date,
       lmv_category = EXCLUDED.lmv_category,
@@ -487,6 +497,8 @@ export async function createOrUpdateLicense(
       fullRecord.mcwg_issued_by,
       fullRecord.mcwg_date,
       fullRecord.mcwg_category,
+      fullRecord.state,
+      fullRecord.state_code,
       fullRecord.lmv_issued_by,
       fullRecord.lmv_date,
       fullRecord.lmv_category,
