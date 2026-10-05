@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import ImageCropperModal from '@/components/ImageCropperModal';
+import ImageCropperModal from '@/components/ui/ImageCropperModal';
 
 type TemplateId = '1' | '2' | '3';
 
@@ -103,7 +103,7 @@ const BD_DEMO_DATA: Record<TemplateId, Record<string, string>> = {
   },
 };
 
-export default function AdminNewLicensePage() {
+export default function LicenseForm() {
   const [activeTab, setActiveTab] = useState<TemplateId>('1');
   const [formData, setFormData] = useState<Record<TemplateId, Record<string, string>>>(EMPTY_DATA);
 
@@ -223,7 +223,7 @@ export default function AdminNewLicensePage() {
       }
 
       try {
-        const res = await fetch('/api/generate', {
+        const res = await fetch('/api/public/generate', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           signal: controller.signal,
@@ -460,7 +460,7 @@ export default function AdminNewLicensePage() {
       downloadData.lmv_category = downloadData.lmv_category || 'NT';
     }
     try {
-      const res = await fetch('/api/generate', {
+      const res = await fetch('/api/public/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

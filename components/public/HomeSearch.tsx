@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Head from 'next/head';
 
-export default function PublicSearchPage() {
+export default function HomeSearch() {
   const router = useRouter();
 
   const [dlNumber, setDlNumber] = useState('');
@@ -82,7 +82,7 @@ export default function PublicSearchPage() {
 
     try {
       const res = await fetch(
-        `/api/verify?license=${encodeURIComponent(cleanDl)}&dob=${encodeURIComponent(dob.trim())}`
+        `/api/public/verify?license=${encodeURIComponent(cleanDl)}&dob=${encodeURIComponent(dob.trim())}`
       );
       const data = await res.json();
 

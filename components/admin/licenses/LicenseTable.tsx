@@ -43,7 +43,7 @@ interface LicenseRecord {
   created_at: string;
 }
 
-export default function LicenseDirectoryPage() {
+export default function LicenseTable() {
   const [licenses, setLicenses] = useState<LicenseRecord[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -176,7 +176,7 @@ export default function LicenseDirectoryPage() {
       payloadData.pres_address_3 = lic.pres_address_3 || '';
     }
 
-    fetch('/api/generate', {
+    fetch('/api/public/generate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       signal: controller.signal,
@@ -260,7 +260,7 @@ export default function LicenseDirectoryPage() {
     const timeoutId = setTimeout(() => controller.abort(), 25000);
 
     try {
-      const res = await fetch('/api/generate', {
+      const res = await fetch('/api/public/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         signal: controller.signal,

@@ -24,7 +24,7 @@ interface LicenseData {
   address_2?: string;
 }
 
-export default function DlStatusPage() {
+export default function LicenseStatus() {
   const params = useParams();
   const router = useRouter();
   const rawLicense = (params?.license as string) || '';
@@ -77,7 +77,7 @@ export default function DlStatusPage() {
       setLoading(true);
       setError(null);
       try {
-        const res = await fetch(`/api/verify?license=${encodeURIComponent(rawLicense)}`);
+        const res = await fetch(`/api/public/verify?license=${encodeURIComponent(rawLicense)}`);
         const data = await res.json();
 
         if (res.ok && data.success && data.record) {
