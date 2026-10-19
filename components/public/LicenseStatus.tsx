@@ -660,7 +660,133 @@ export default function LicenseStatus() {
                     .dl-form-group label { width: 100%; margin-bottom: 5px; }
                     .dl-form-control { width: 100%; }
                   }
-                `}} />
+                
+        /* Mobile Optimization */
+        @media (max-width: 768px) {
+          .sarathi-main-banner {
+            padding: 8px 0 !important;
+          }
+          .sarathi-banner-inner {
+            padding: 10px 14px !important;
+            gap: 12px !important;
+            flex-direction: column !important;
+            text-align: center !important;
+          }
+          .sarathi-branding-left {
+            flex-direction: column !important;
+            gap: 8px !important;
+            text-align: center !important;
+          }
+          .sarathi-emblem-badge {
+            width: 52px !important;
+            height: 52px !important;
+            min-width: 52px !important;
+            border-radius: 8px !important;
+          }
+          .sarathi-emblem-img {
+            height: 42px !important;
+          }
+          .sarathi-title-hi {
+            font-size: 13px !important;
+          }
+          .sarathi-title-en {
+            font-size: 12px !important;
+            letter-spacing: 0.2px !important;
+          }
+          .sarathi-title-sub {
+            font-size: 10px !important;
+          }
+          .sarathi-center-logo-img {
+            height: 38px !important;
+          }
+          .sarathi-branding-right {
+            justify-content: center !important;
+            flex-wrap: wrap !important;
+          }
+          .digital-india-badge {
+            padding: 4px 10px !important;
+          }
+          .digital-india-img {
+            height: 28px !important;
+          }
+          .mission-mode-text {
+            text-align: center !important;
+          }
+          .mission-mode-text .top {
+            font-size: 10px !important;
+          }
+          .mission-mode-text .sub {
+            font-size: 9px !important;
+          }
+          .main-portal-content {
+            margin: 14px auto 28px auto !important;
+            padding: 0 12px !important;
+          }
+          .portal-card-body, .right-card-body {
+            padding: 16px 14px !important;
+          }
+          .card-header-navy, .card-header-cyan {
+            padding: 12px 14px !important;
+          }
+          .card-header-title {
+            font-size: 14px !important;
+          }
+          .gov-input-field, .gov-captcha-input {
+            height: 42px !important;
+            font-size: 13px !important;
+          }
+          .gov-captcha-box {
+            flex-wrap: wrap !important;
+            gap: 8px !important;
+          }
+          .gov-captcha-img {
+            height: 40px !important;
+            font-size: 17px !important;
+            letter-spacing: 4px !important;
+            padding: 0 12px !important;
+          }
+          .gov-captcha-reload {
+            height: 40px !important;
+            width: 40px !important;
+          }
+          .gov-captcha-input-wrap {
+            width: 100% !important;
+            flex: 1 1 100% !important;
+          }
+          .gov-form-actions {
+            flex-direction: column !important;
+            width: 100% !important;
+            gap: 10px !important;
+          }
+          .btn-check-gov, .btn-reset-gov {
+            width: 100% !important;
+            justify-content: center !important;
+            padding: 11px !important;
+          }
+          .note-params-grid {
+            grid-template-columns: 1fr !important;
+            gap: 8px !important;
+          }
+          .gov-terms-body {
+            padding: 14px 14px !important;
+          }
+          .gov-terms-item {
+            font-size: 12px !important;
+            gap: 8px !important;
+          }
+          .sarathi-footer-main {
+            padding: 10px 14px 20px 14px !important;
+          }
+          .footer-links-container {
+            flex-direction: column !important;
+            gap: 14px !important;
+          }
+          .footer-link-col {
+            width: 100% !important;
+          }
+        }
+
+      `}} />
 
                 {/* Form fields (readonly) */}
                 <div className="dl-form-center-wrapper">
