@@ -1235,7 +1235,7 @@ export default function HomeSearch() {
           <div className="gov-utility-left">
             <span className="gov-flag-badge">
               <span className="gov-flag-icon" />
-              <span>भारत सरकार | Government of India</span>
+              <span>ई-परिवहन सेवा | e-Parivahan Portal</span>
             </span>
             <span className="gov-utility-sep">|</span>
             <span className="gov-utility-ministry">सड़क परिवहन और राजमार्ग मंत्रालय (MoRTH)</span>
@@ -1313,7 +1313,7 @@ export default function HomeSearch() {
             <div className="sarathi-titles">
               <div className="sarathi-title-hi">सड़क परिवहन और राजमार्ग मंत्रालय</div>
               <div className="sarathi-title-en">MINISTRY OF ROAD TRANSPORT &amp; HIGHWAYS</div>
-              <div className="sarathi-title-sub">Government of India</div>
+              <div className="sarathi-title-sub">National Transport Portal</div>
             </div>
           </div>
 
@@ -1696,7 +1696,7 @@ export default function HomeSearch() {
         </div>
 
         <div className="sarathi-footer-bottom">
-          Copyright © 2026 Ministry of Road Transport &amp; Highways (MoRTH), Government of India. All Rights Reserved.
+          Copyright © 2026 Ministry of Road Transport &amp; Highways (MoRTH), All Rights Reserved.
         </div>
       </div>
     </div>

@@ -13,6 +13,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const handleLogout = async () => {
     await fetch('/api/admin/auth', { method: 'DELETE' });
     router.push('/something');
+    router.refresh();
   };
 
   const navLinks = [
@@ -26,7 +27,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     <div className="admin-body">
       <AdminSidebar pathname={pathname} navLinks={navLinks} onLogout={handleLogout} />
       <div className="admin-main-wrapper">
-        <AdminTopbar />
+        <AdminTopbar onLogout={handleLogout} navLinks={navLinks} pathname={pathname} />
         <main className="admin-content">{children}</main>
       </div>
       <AdminMobileNav pathname={pathname} navLinks={navLinks} />

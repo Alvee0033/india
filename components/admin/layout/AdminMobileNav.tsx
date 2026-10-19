@@ -26,8 +26,14 @@ export default function AdminMobileNav({ pathname, navLinks }: AdminMobileNavPro
           <Link
             key={link.href}
             href={link.href}
-            prefetch={true}
             className={`mobile-nav-link ${isActive ? 'active' : ''} ${link.isAdd ? 'mobile-nav-add' : ''}`}
+            style={{
+              touchAction: 'manipulation',
+              WebkitTapHighlightColor: 'rgba(0,0,0,0)',
+              cursor: 'pointer',
+              userSelect: 'none',
+              padding: '8px 10px',
+            }}
           >
             <i className={`fas ${link.icon}`}></i>
             <span>{link.label}</span>
