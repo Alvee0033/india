@@ -6,6 +6,17 @@ import { getAdminUserByEmail, getPrimaryAdminUser } from '@/lib/db';
 const DEFAULT_ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@dlims.gov';
 const DEFAULT_ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'dlims@admin2024';
 
+export const dynamic = 'force-dynamic';
+
+export async function GET() {
+  const cookieStore = cookies();
+  const auth = cookieStore.get('dlims_admin_auth');
+  if (auth && auth.value === 'authenticated') {
+    return NextResponse.json({ authenticated: true });
+  }
+  return NextResponse.json({ authenticated: false }, { status: 401 });
+}
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
@@ -24,7 +35,6 @@ export async function POST(req: NextRequest) {
 
       if (dbUser) {
         userEmail = dbUser.email;
-        // Verify bcrypt hash or fallback plain
         const isBcrypt = dbUser.password_hash.startsWith('$2a$') || dbUser.password_hash.startsWith('$2b$');
         if (isBcrypt) {
           authenticated = await bcrypt.compare(inputPassword, dbUser.password_hash);
@@ -54,7 +64,7 @@ export async function POST(req: NextRequest) {
       cookieStore.set('dlims_admin_auth', 'authenticated', {
         httpOnly: true,
         secure: false,
-        maxAge: 60 * 60 * 24, // 24 hours
+        maxAge: 60 * 60 * 24 * 30, // 30 days session
         path: '/',
         sameSite: 'lax',
       });

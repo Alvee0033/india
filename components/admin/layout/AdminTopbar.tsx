@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 
 interface AdminTopbarProps {
   onLogout?: () => void;
@@ -10,11 +11,6 @@ interface AdminTopbarProps {
 
 export default function AdminTopbar({ onLogout, navLinks = [], pathname = '' }: AdminTopbarProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
-  const handleNav = (url: string) => {
-    setMobileMenuOpen(false);
-    window.location.href = url;
-  };
 
   return (
     <>
@@ -51,10 +47,9 @@ export default function AdminTopbar({ onLogout, navLinks = [], pathname = '' }: 
             <i className={`fas ${mobileMenuOpen ? 'fa-xmark' : 'fa-bars'}`}></i>
           </button>
 
-          <div
-            className="d-flex align-items-center gap-2"
-            onClick={() => handleNav('/something')}
-            style={{ cursor: 'pointer' }}
+          <Link
+            href="/something"
+            className="d-flex align-items-center gap-2 text-decoration-none"
           >
             <div
               className="d-flex align-items-center justify-content-center rounded-2 bg-success text-white shadow-sm"
@@ -63,20 +58,19 @@ export default function AdminTopbar({ onLogout, navLinks = [], pathname = '' }: 
               <i className="fas fa-shield-halved"></i>
             </div>
             <span className="fw-bold fs-6 text-dark">DLIMS</span>
-          </div>
+          </Link>
           <span className="status-pill online d-none d-sm-inline-flex">Online</span>
         </div>
 
         <div className="d-flex align-items-center gap-2">
-          <button
-            type="button"
-            onClick={() => handleNav('/something/licenses/new')}
+          <Link
+            href="/something/licenses/new"
             className="btn btn-sm btn-success d-flex align-items-center gap-1 py-1 px-3 fw-semibold rounded-pill"
             style={{ fontSize: '0.8rem' }}
           >
             <i className="fas fa-plus"></i>
             <span>New License</span>
-          </button>
+          </Link>
 
           {onLogout && (
             <button
@@ -106,50 +100,50 @@ export default function AdminTopbar({ onLogout, navLinks = [], pathname = '' }: 
                   : pathname.startsWith(link.href);
 
               return (
-                <button
+                <Link
                   key={link.href}
-                  type="button"
-                  onClick={() => handleNav(link.href)}
-                  className={`d-flex align-items-center gap-3 px-3 py-2 rounded text-start border-0 ${
+                  href={link.href}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={`d-flex align-items-center gap-3 px-3 py-2 rounded text-decoration-none ${
                     isActive ? 'bg-success text-white fw-bold' : 'text-light bg-secondary bg-opacity-25'
                   }`}
-                  style={{ fontSize: '0.95rem', cursor: 'pointer' }}
+                  style={{ fontSize: '0.95rem' }}
                 >
                   <i className={`fas ${link.icon}`} style={{ width: 22 }}></i>
                   <span>{link.label}</span>
-                </button>
+                </Link>
               );
             })}
 
             <div className="border-top border-secondary border-opacity-25 my-1" />
 
-            <button
-              type="button"
-              onClick={() => handleNav('/something/templates')}
-              className="d-flex align-items-center gap-3 px-3 py-2 rounded text-start border-0 text-info bg-secondary bg-opacity-10"
-              style={{ fontSize: '0.9rem', cursor: 'pointer' }}
+            <Link
+              href="/something/templates"
+              onClick={() => setMobileMenuOpen(false)}
+              className="d-flex align-items-center gap-3 px-3 py-2 rounded text-decoration-none text-info bg-secondary bg-opacity-10"
+              style={{ fontSize: '0.9rem' }}
             >
               <i className="fas fa-layer-group" style={{ width: 22 }}></i>
               <span>Card Templates</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => handleNav('/something/analytics')}
-              className="d-flex align-items-center gap-3 px-3 py-2 rounded text-start border-0 text-warning bg-secondary bg-opacity-10"
-              style={{ fontSize: '0.9rem', cursor: 'pointer' }}
+            </Link>
+            <Link
+              href="/something/analytics"
+              onClick={() => setMobileMenuOpen(false)}
+              className="d-flex align-items-center gap-3 px-3 py-2 rounded text-decoration-none text-warning bg-secondary bg-opacity-10"
+              style={{ fontSize: '0.9rem' }}
             >
               <i className="fas fa-chart-line" style={{ width: 22 }}></i>
               <span>Analytics &amp; Telemetry</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => handleNav('/something/logs')}
-              className="d-flex align-items-center gap-3 px-3 py-2 rounded text-start border-0 text-light bg-secondary bg-opacity-10"
-              style={{ fontSize: '0.9rem', cursor: 'pointer' }}
+            </Link>
+            <Link
+              href="/something/logs"
+              onClick={() => setMobileMenuOpen(false)}
+              className="d-flex align-items-center gap-3 px-3 py-2 rounded text-decoration-none text-light bg-secondary bg-opacity-10"
+              style={{ fontSize: '0.9rem' }}
             >
               <i className="fas fa-list-check" style={{ width: 22 }}></i>
               <span>Verification Logs</span>
-            </button>
+            </Link>
 
             {onLogout && (
               <button

@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Link from 'next/link';
 
 interface NavLink {
   href: string;
@@ -17,16 +18,11 @@ interface AdminSidebarProps {
 }
 
 export default function AdminSidebar({ pathname, navLinks, onLogout }: AdminSidebarProps) {
-  const handleNav = (url: string) => {
-    window.location.href = url;
-  };
-
   return (
     <aside className="admin-sidebar">
-      <div
-        className="admin-sidebar-brand"
-        onClick={() => handleNav('/something')}
-        style={{ cursor: 'pointer' }}
+      <Link
+        href="/something"
+        className="admin-sidebar-brand text-decoration-none"
       >
         <div className="admin-logo-badge">
           <i className="fas fa-shield-halved"></i>
@@ -35,7 +31,7 @@ export default function AdminSidebar({ pathname, navLinks, onLogout }: AdminSide
           <div className="admin-brand-title">DLIMS Engine</div>
           <div className="admin-brand-subtitle">License Control Portal</div>
         </div>
-      </div>
+      </Link>
 
       <div className="admin-nav-links">
         {navLinks.map((link) => {
@@ -44,59 +40,52 @@ export default function AdminSidebar({ pathname, navLinks, onLogout }: AdminSide
               ? pathname === '/something'
               : pathname.startsWith(link.href);
           return (
-            <button
+            <Link
               key={link.href}
-              type="button"
-              onClick={() => handleNav(link.href)}
-              className={`admin-nav-item border-0 w-100 text-start bg-transparent ${
-                isActive ? 'active' : ''
-              }`}
-              style={{ cursor: 'pointer' }}
+              href={link.href}
+              prefetch={true}
+              className={`admin-nav-item ${isActive ? 'active' : ''}`}
             >
               <i className={`fas ${link.icon}`}></i>
               <span>{link.desktopLabel || link.label}</span>
-            </button>
+            </Link>
           );
         })}
 
         <div className="my-3 border-top border-secondary border-opacity-25" />
 
-        <button
-          type="button"
-          onClick={() => handleNav('/something/licenses/new')}
-          className="admin-nav-item text-success border-0 w-100 text-start bg-transparent"
-          style={{ cursor: 'pointer' }}
+        <Link
+          href="/something/licenses/new"
+          prefetch={true}
+          className="admin-nav-item text-success"
         >
           <i className="fas fa-id-card"></i>
           <span>3-Template Generator</span>
-        </button>
-        <button
-          type="button"
-          onClick={() => handleNav('/something/templates')}
-          className="admin-nav-item text-info border-0 w-100 text-start bg-transparent"
-          style={{ cursor: 'pointer' }}
+        </Link>
+        <Link
+          href="/something/templates"
+          prefetch={true}
+          className="admin-nav-item text-info"
         >
           <i className="fas fa-layer-group"></i>
           <span>Card Templates</span>
-        </button>
-        <button
-          type="button"
-          onClick={() => handleNav('/something/analytics')}
-          className="admin-nav-item text-warning border-0 w-100 text-start bg-transparent"
-          style={{ cursor: 'pointer' }}
+        </Link>
+        <Link
+          href="/something/analytics"
+          prefetch={true}
+          className="admin-nav-item text-warning"
         >
           <i className="fas fa-chart-line"></i>
           <span>Analytics &amp; Telemetry</span>
-        </button>
-        <button
-          type="button"
-          onClick={() => handleNav('/something/logs')}
-          className="admin-nav-item text-light border-0 w-100 text-start bg-transparent"
-          style={{ cursor: 'pointer' }}
+        </Link>
+        <Link
+          href="/something/logs"
+          prefetch={true}
+          className="admin-nav-item text-light"
         >
           <i className="fas fa-list-check"></i>
           <span>Verification Logs</span>
-        </button>
+        </Link>
       </div>
 
       <div className="admin-sidebar-footer d-flex align-items-center justify-content-between">
