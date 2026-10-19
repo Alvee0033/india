@@ -34,6 +34,7 @@ export default function LicenseStatus() {
   const [license, setLicense] = useState<LicenseData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [currentTime, setCurrentTime] = useState({ date: '', time: '' });
+  const [fontScale, setFontScale] = useState<number>(1);
 
   useEffect(() => {
     const updateTime = () => {
@@ -123,33 +124,338 @@ export default function LicenseStatus() {
   return (
     <>
       <style dangerouslySetInnerHTML={{__html: `
-        .sarathi-header-wrap { background-color: #21a3f0; color: #fff; font-family: Arial, sans-serif; border-bottom: 2px solid #005680; }
-        .sarathi-header { max-width: 1400px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; padding: 10px 20px; }
-        
-        .header-left-col { display: flex; align-items: center; gap: 15px; width: 33%; }
-        .header-emblem { height: 75px; background: #fff; border-radius: 50%; padding: 2px; box-shadow: 0 0 5px rgba(0,0,0,0.2); }
-        .header-gov-text { line-height: 1.3; }
-        .header-gov-text .hi-text { font-size: 16px; font-weight: 400; margin-bottom: 2px; font-family: 'Roboto Condensed', Arial, sans-serif; }
-        .header-gov-text .en-text-1 { font-size: 16px; font-weight: 700; margin-bottom: 2px; font-family: 'Roboto Condensed', Arial, sans-serif; letter-spacing: 0.5px; }
-        .header-gov-text .en-text-2 { font-size: 15px; font-weight: 400; font-family: 'Roboto Condensed', Arial, sans-serif; letter-spacing: 0.3px; }
+        /* Top Tricolor Government Ribbon */
+        .gov-top-stripe {
+          height: 3.5px;
+          background: linear-gradient(90deg, #ff9933 0%, #ff9933 33.33%, #ffffff 33.33%, #ffffff 66.66%, #138808 66.66%, #138808 100%);
+          width: 100%;
+        }
 
-        .header-mid-col { display: flex; align-items: center; justify-content: center; width: 33%; }
-        .sarathi-center-logo { max-height: 55px; width: auto; object-fit: contain; }
+        /* Tier 1: Government Citizen Utility & Accessibility Bar */
+        .gov-utility-bar {
+          background-color: #07253f;
+          color: #e2e8f0;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
 
-        .header-right-col { display: flex; align-items: center; gap: 15px; flex-wrap: wrap; justify-content: flex-end; width: 33%; }
-        .datetime-block { font-size: 13px; font-weight: bold; display: flex; gap: 10px; }
-        .lang-block { font-size: 14px; display: flex; align-items: center; gap: 5px; }
-        .lang-icon { color: #1a237e; font-weight: bold; font-size: 20px; display: flex; align-items: flex-end; line-height: 1; }
-        .lang-icon sub { font-size: 12px; margin-bottom: -3px; }
-        
-        .font-size-block { display: flex; gap: 5px; }
-        .font-size-btn { background: #0c87cc; color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 12px; border: 1px solid #086b9f; font-weight: bold; cursor: pointer; }
-        
+        .gov-utility-inner {
+          max-width: 1360px;
+          margin: 0 auto;
+          padding: 6px 20px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 15px;
+        }
+
+        .gov-utility-left {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          font-size: 11.5px;
+          font-weight: 500;
+          color: #cbd5e1;
+        }
+
+        .gov-flag-badge {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          font-weight: 700;
+          color: #ffffff;
+          letter-spacing: 0.3px;
+        }
+
+        .gov-flag-icon {
+          width: 16px;
+          height: 11px;
+          border-radius: 2px;
+          background: linear-gradient(180deg, #ff9933 0%, #ff9933 33.3%, #ffffff 33.3%, #ffffff 66.6%, #138808 66.6%, #138808 100%);
+          box-shadow: 0 0 2px rgba(0,0,0,0.5);
+          position: relative;
+          display: inline-block;
+          flex-shrink: 0;
+        }
+
+        .gov-flag-icon::after {
+          content: '';
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          width: 3px;
+          height: 3px;
+          border-radius: 50%;
+          border: 0.5px solid #000080;
+        }
+
+        .gov-utility-sep {
+          color: rgba(255, 255, 255, 0.25);
+          font-weight: 300;
+        }
+
+        .gov-utility-ministry {
+          color: #93c5fd;
+          font-size: 11.5px;
+        }
+
+        .gov-utility-right {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          flex-wrap: wrap;
+        }
+
+        .gov-clock-pill {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          background: rgba(255, 255, 255, 0.08);
+          padding: 3px 10px;
+          border-radius: 4px;
+          border: 1px solid rgba(255, 255, 255, 0.12);
+          font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+          font-size: 11px;
+          color: #f8fafc;
+        }
+
+        .gov-clock-item {
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+        }
+
+        .gov-lang-block {
+          display: inline-flex;
+          align-items: center;
+          gap: 5px;
+          font-size: 11.5px;
+          color: #cbd5e1;
+        }
+
+        .gov-lang-chip {
+          background: #ffffff;
+          color: #07253f;
+          font-weight: 800;
+          font-size: 11px;
+          padding: 1px 6px;
+          border-radius: 3px;
+          line-height: 1.2;
+        }
+
+        .gov-zoom-group {
+          display: flex;
+          align-items: center;
+          gap: 2px;
+          background: rgba(255, 255, 255, 0.08);
+          padding: 2px;
+          border-radius: 4px;
+          border: 1px solid rgba(255, 255, 255, 0.12);
+        }
+
+        .gov-zoom-btn {
+          background: transparent;
+          color: #e2e8f0;
+          padding: 1px 6px;
+          font-size: 10.5px;
+          font-weight: 700;
+          border: none;
+          border-radius: 2px;
+          cursor: pointer;
+          transition: all 0.15s ease;
+          user-select: none;
+        }
+
+        .gov-zoom-btn:hover, .gov-zoom-btn.active {
+          background: #0284c7;
+          color: #ffffff;
+        }
+
+        .gov-admin-link {
+          display: inline-flex;
+          align-items: center;
+          gap: 5px;
+          background: linear-gradient(180deg, #1e3a5f 0%, #10243e 100%);
+          color: #e0f2fe;
+          font-size: 11.5px;
+          font-weight: 600;
+          padding: 3px 10px;
+          border-radius: 4px;
+          border: 1px solid rgba(56, 189, 248, 0.35);
+          text-decoration: none;
+          transition: all 0.2s ease;
+        }
+
+        .gov-admin-link:hover {
+          background: #0284c7;
+          color: #ffffff;
+          border-color: #38bdf8;
+        }
+
+        /* Tier 2: Official Sarathi Parivahan Main Banner */
+        .sarathi-main-banner {
+          background: linear-gradient(135deg, #1ea1ef 0%, #0d8cd7 100%);
+          border-bottom: 2px solid #005680;
+          box-shadow: 0 4px 14px rgba(11, 74, 115, 0.18);
+          color: #ffffff;
+        }
+
+        .sarathi-banner-inner {
+          max-width: 1360px;
+          margin: 0 auto;
+          padding: 12px 20px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 20px;
+        }
+
+        .sarathi-branding-left {
+          display: flex;
+          align-items: center;
+          gap: 16px;
+        }
+
+        .sarathi-emblem-badge {
+          width: 68px;
+          height: 68px;
+          min-width: 68px;
+          background: #ffffff;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 4px;
+          box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+          border: 1.5px solid rgba(255, 255, 255, 0.9);
+        }
+
+        .sarathi-emblem-img {
+          height: 58px;
+          width: auto;
+          object-fit: contain;
+        }
+
+        .sarathi-titles {
+          line-height: 1.25;
+        }
+
+        .sarathi-title-hi {
+          font-size: 15.5px;
+          font-weight: 600;
+          color: #ffffff;
+          margin-bottom: 2px;
+          text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        .sarathi-title-en {
+          font-size: 15px;
+          font-weight: 800;
+          letter-spacing: 0.6px;
+          color: #ffffff;
+          margin-bottom: 1px;
+          text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        .sarathi-title-sub {
+          font-size: 12px;
+          font-weight: 600;
+          letter-spacing: 0.5px;
+          color: #e0f2fe;
+          text-transform: uppercase;
+        }
+
+        .sarathi-branding-center {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .sarathi-center-logo-img {
+          height: 50px;
+          width: auto;
+          object-fit: contain;
+          filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.18));
+        }
+
+        .sarathi-branding-right {
+          display: flex;
+          align-items: center;
+          gap: 14px;
+          justify-content: flex-end;
+        }
+
+        .digital-india-badge {
+          background: #ffffff;
+          padding: 5px 12px;
+          border-radius: 6px;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          border: 1px solid rgba(255, 255, 255, 0.7);
+        }
+
+        .digital-india-img {
+          height: 36px;
+          width: auto;
+          object-fit: contain;
+        }
+
+        .mission-mode-text {
+          display: flex;
+          flex-direction: column;
+          line-height: 1.2;
+          text-align: right;
+          color: #ffffff;
+        }
+
+        .mission-mode-text .top {
+          font-size: 11px;
+          font-weight: 700;
+          letter-spacing: 0.5px;
+          text-transform: uppercase;
+          color: #ffffff;
+          text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+        }
+
+        .mission-mode-text .sub {
+          font-size: 10px;
+          color: #e0f2fe;
+          letter-spacing: 0.3px;
+        }
+
         @media (max-width: 992px) {
-            .sarathi-header { flex-direction: column; text-align: center; gap: 15px; padding: 15px 10px; }
-            .header-left-col, .header-mid-col, .header-right-col { width: 100%; justify-content: center; }
-            .header-left-col { flex-direction: column; text-align: center; }
-            .header-right-col { flex-direction: column; align-items: center; gap: 12px; }
+          .gov-utility-inner {
+            flex-direction: column;
+            gap: 8px;
+            padding: 8px 14px;
+            text-align: center;
+          }
+          .gov-utility-left, .gov-utility-right {
+            justify-content: center;
+            flex-wrap: wrap;
+          }
+          .sarathi-banner-inner {
+            flex-direction: column;
+            text-align: center;
+            gap: 14px;
+            padding: 14px 14px;
+          }
+          .sarathi-branding-left {
+            flex-direction: column;
+            text-align: center;
+          }
+          .sarathi-branding-right {
+            justify-content: center;
+            flex-wrap: wrap;
+          }
+          .mission-mode-text {
+            text-align: center;
+          }
         }
 
         .sarathi-footer-wrap { background-color: #21a3f0; color: #fff; font-family: Arial, sans-serif; padding: 10px 0 0 0; margin-top: 50px; }
@@ -179,34 +485,122 @@ export default function LicenseStatus() {
         }
       `}} />
 
-      {/* Header Banner matching landing page */}
-      <div className="sarathi-header-wrap">
-        <div className="sarathi-header">
-          <div className="header-left-col">
-            <img src="/demo2.png" alt="Left Logo" style={{height: '75px', width: 'auto', objectFit: 'contain', background: 'none'}} />
-            <div className="header-gov-text">
-              <div className="hi-text">सड़क परिवहन और राजमार्ग मंत्रालय भारत सरकार</div>
-              <div className="en-text-1">MINISTRY OF ROAD TRANSPORT &amp; HIGHWAYS</div>
-              <div className="en-text-2">Government of India</div>
-            </div>
-          </div>
-          
-          <div className="header-mid-col">
-            <img className="sarathi-center-logo" src="/logo.png" alt="Logo" />
+      {/* Tricolor National Stripe */}
+      <div className="gov-top-stripe" />
+
+      {/* Tier 1: Government Citizen Utility & Accessibility Bar */}
+      <div className="gov-utility-bar">
+        <div className="gov-utility-inner">
+          <div className="gov-utility-left">
+            <span className="gov-flag-badge">
+              <span className="gov-flag-icon" />
+              <span>भारत सरकार | Government of India</span>
+            </span>
+            <span className="gov-utility-sep">|</span>
+            <span className="gov-utility-ministry">सड़क परिवहन और राजमार्ग मंत्रालय (MoRTH)</span>
           </div>
 
-          <div className="header-right-col">
-            <div className="datetime-block">
-              <span>DATE: <span id="live-date">{currentTime.date}</span></span>
-              <span>TIME: <span id="live-time">{currentTime.time}</span></span>
+          <div className="gov-utility-right">
+            <div className="gov-clock-pill">
+              <span className="gov-clock-item">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                  <line x1="16" y1="2" x2="16" y2="6" />
+                  <line x1="8" y1="2" x2="8" y2="6" />
+                  <line x1="3" y1="10" x2="21" y2="10" />
+                </svg>
+                <span id="live-date">{currentTime.date || '19-10-2026'}</span>
+              </span>
+              <span style={{ opacity: 0.4 }}>|</span>
+              <span className="gov-clock-item">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10" />
+                  <polyline points="12 6 12 12 16 14" />
+                </svg>
+                <span id="live-time">{currentTime.time || '01:25:00 AM'}</span>
+              </span>
             </div>
-            <div className="lang-block">
-              Language: <span className="lang-icon">अ<sub>A</sub></span>
+
+            <div className="gov-lang-block">
+              <span>भाषा / Lang:</span>
+              <span className="gov-lang-chip">अ<sub>A</sub></span>
             </div>
-            <div className="font-size-block">
-              <span className="font-size-btn">A-</span>
-              <span className="font-size-btn">A</span>
-              <span className="font-size-btn">A+</span>
+
+            <div className="gov-zoom-group">
+              <button
+                type="button"
+                className={`gov-zoom-btn ${fontScale < 1 ? 'active' : ''}`}
+                onClick={() => setFontScale(0.9)}
+                title="Decrease font size"
+              >
+                A-
+              </button>
+              <button
+                type="button"
+                className={`gov-zoom-btn ${fontScale === 1 ? 'active' : ''}`}
+                onClick={() => setFontScale(1)}
+                title="Default font size"
+              >
+                A
+              </button>
+              <button
+                type="button"
+                className={`gov-zoom-btn ${fontScale > 1 ? 'active' : ''}`}
+                onClick={() => setFontScale(1.1)}
+                title="Increase font size"
+              >
+                A+
+              </button>
+            </div>
+
+            <Link href="/login" className="gov-admin-link">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+              </svg>
+              <span>Admin Login</span>
+            </Link>
+          </div>
+        </div>
+      </div>
+
+      {/* Tier 2: Official Sarathi Parivahan Main Banner */}
+      <div className="sarathi-main-banner">
+        <div className="sarathi-banner-inner">
+          <div className="sarathi-branding-left">
+            <div className="sarathi-emblem-badge">
+              <img
+                src="/demo2.png"
+                alt="State Emblem of India"
+                className="sarathi-emblem-img"
+              />
+            </div>
+            <div className="sarathi-titles">
+              <div className="sarathi-title-hi">सड़क परिवहन और राजमार्ग मंत्रालय</div>
+              <div className="sarathi-title-en">MINISTRY OF ROAD TRANSPORT &amp; HIGHWAYS</div>
+              <div className="sarathi-title-sub">Government of India</div>
+            </div>
+          </div>
+
+          <div className="sarathi-branding-center">
+            <img
+              className="sarathi-center-logo-img"
+              src="/logo.png"
+              alt="Sarathi Parivahan Logo"
+            />
+          </div>
+
+          <div className="sarathi-branding-right">
+            <div className="mission-mode-text">
+              <span className="top">e-Transport Portal</span>
+              <span className="sub">Mission Mode Project</span>
+            </div>
+            <div className="digital-india-badge">
+              <img
+                src="/digital_logo_main-1.png"
+                alt="Digital India - Power to Empower"
+                className="digital-india-img"
+              />
             </div>
           </div>
         </div>

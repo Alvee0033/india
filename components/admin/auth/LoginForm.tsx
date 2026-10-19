@@ -22,7 +22,7 @@ export default function LoginForm() {
       });
       const data = await res.json();
       if (res.ok && data.success) {
-        router.push('/admin');
+        router.push('/something');
         router.refresh();
       } else {
         setError(data.error || 'Invalid email or password.');

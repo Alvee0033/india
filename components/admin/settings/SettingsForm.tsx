@@ -369,14 +369,14 @@ export default function SettingsPage() {
                   <span>Seed Default Directory Records</span>
                 </button>
                 <Link
-                  href="/admin/licenses"
+                  href="/something/licenses"
                   className="btn btn-sm btn-outline-secondary d-flex align-items-center justify-content-center gap-2 py-2"
                 >
                   <i className="fas fa-list"></i>
                   <span>Open License Directory</span>
                 </Link>
                 <Link
-                  href="/admin/licenses/new"
+                  href="/something/licenses/new"
                   className="btn btn-sm btn-success d-flex align-items-center justify-content-center gap-2 py-2 fw-semibold"
                 >
                   <i className="fas fa-id-card"></i>
