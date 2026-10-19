@@ -1235,7 +1235,7 @@ export default function HomeSearch() {
           <div className="gov-utility-left">
             <span className="gov-flag-badge">
               <span className="gov-flag-icon" />
-              <span>ई-परिवहन सेवा | e-Parivahan Portal</span>
+              <span>भारत सरकार | Government of India</span>
             </span>
             <span className="gov-utility-sep">|</span>
             <span className="gov-utility-ministry">सड़क परिवहन और राजमार्ग मंत्रालय (MoRTH)</span>
@@ -1313,7 +1313,7 @@ export default function HomeSearch() {
             <div className="sarathi-titles">
               <div className="sarathi-title-hi">सड़क परिवहन और राजमार्ग मंत्रालय</div>
               <div className="sarathi-title-en">MINISTRY OF ROAD TRANSPORT &amp; HIGHWAYS</div>
-              <div className="sarathi-title-sub">National Transport Portal</div>
+              <div className="sarathi-title-sub">Government of India</div>
             </div>
           </div>
 

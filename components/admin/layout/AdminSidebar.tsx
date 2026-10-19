@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import Link from 'next/link';
 
 interface NavLink {
   href: string;
@@ -18,9 +17,17 @@ interface AdminSidebarProps {
 }
 
 export default function AdminSidebar({ pathname, navLinks, onLogout }: AdminSidebarProps) {
+  const handleNav = (url: string) => {
+    window.location.href = url;
+  };
+
   return (
     <aside className="admin-sidebar">
-      <div className="admin-sidebar-brand">
+      <div
+        className="admin-sidebar-brand"
+        onClick={() => handleNav('/something')}
+        style={{ cursor: 'pointer' }}
+      >
         <div className="admin-logo-badge">
           <i className="fas fa-shield-halved"></i>
         </div>
@@ -32,38 +39,64 @@ export default function AdminSidebar({ pathname, navLinks, onLogout }: AdminSide
 
       <div className="admin-nav-links">
         {navLinks.map((link) => {
-          const isActive = link.href === '/something' ? pathname === '/something' : pathname.startsWith(link.href);
+          const isActive =
+            link.href === '/something'
+              ? pathname === '/something'
+              : pathname.startsWith(link.href);
           return (
-            <Link
+            <button
               key={link.href}
-              href={link.href}
-              prefetch={true}
-              className={`admin-nav-item ${isActive ? 'active' : ''}`}
+              type="button"
+              onClick={() => handleNav(link.href)}
+              className={`admin-nav-item border-0 w-100 text-start bg-transparent ${
+                isActive ? 'active' : ''
+              }`}
+              style={{ cursor: 'pointer' }}
             >
               <i className={`fas ${link.icon}`}></i>
               <span>{link.desktopLabel || link.label}</span>
-            </Link>
+            </button>
           );
         })}
 
         <div className="my-3 border-top border-secondary border-opacity-25" />
 
-        <Link href="/something/licenses/new" className="admin-nav-item text-success">
+        <button
+          type="button"
+          onClick={() => handleNav('/something/licenses/new')}
+          className="admin-nav-item text-success border-0 w-100 text-start bg-transparent"
+          style={{ cursor: 'pointer' }}
+        >
           <i className="fas fa-id-card"></i>
           <span>3-Template Generator</span>
-        </Link>
-        <Link href="/something/templates" className="admin-nav-item text-info">
+        </button>
+        <button
+          type="button"
+          onClick={() => handleNav('/something/templates')}
+          className="admin-nav-item text-info border-0 w-100 text-start bg-transparent"
+          style={{ cursor: 'pointer' }}
+        >
           <i className="fas fa-layer-group"></i>
           <span>Card Templates</span>
-        </Link>
-        <Link href="/something/analytics" className="admin-nav-item text-warning">
+        </button>
+        <button
+          type="button"
+          onClick={() => handleNav('/something/analytics')}
+          className="admin-nav-item text-warning border-0 w-100 text-start bg-transparent"
+          style={{ cursor: 'pointer' }}
+        >
           <i className="fas fa-chart-line"></i>
-          <span>Analytics & Telemetry</span>
-        </Link>
-        <Link href="/something/logs" className="admin-nav-item text-light">
+          <span>Analytics &amp; Telemetry</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => handleNav('/something/logs')}
+          className="admin-nav-item text-light border-0 w-100 text-start bg-transparent"
+          style={{ cursor: 'pointer' }}
+        >
           <i className="fas fa-list-check"></i>
           <span>Verification Logs</span>
-        </Link>
+        </button>
       </div>
 
       <div className="admin-sidebar-footer d-flex align-items-center justify-content-between">
@@ -86,7 +119,14 @@ export default function AdminSidebar({ pathname, navLinks, onLogout }: AdminSide
         <button
           onClick={onLogout}
           title="Logout"
-          style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#f87171', fontSize: '16px', padding: '4px 8px' }}
+          style={{
+            background: 'none',
+            border: 'none',
+            cursor: 'pointer',
+            color: '#f87171',
+            fontSize: '16px',
+            padding: '4px 8px',
+          }}
         >
           <i className="fas fa-right-from-bracket"></i>
         </button>
