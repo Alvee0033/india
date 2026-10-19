@@ -290,11 +290,12 @@ export default function HomeSearch() {
           border-color: #0284c7;
         }
 
-        /* Tier 2: Redesigned Majestic Official Header (Deep Royal Navy with subtle warm gold accent) */
+        /* Tier 2: Official Sarathi Parivahan Header - Matched Exactly to Logo (#1da6ee) */
         .sarathi-main-banner {
-          background: linear-gradient(135deg, #0a2540 0%, #0d3b66 50%, #082038 100%);
-          border-bottom: 3px solid #ff9933;
-          box-shadow: 0 4px 20px rgba(10, 37, 64, 0.15);
+          background-color: #1da6ee;
+          background: linear-gradient(180deg, #22a9f0 0%, #1da6ee 50%, #179be0 100%);
+          border-bottom: 3px solid #005680;
+          box-shadow: 0 4px 18px rgba(15, 118, 178, 0.2);
           color: #ffffff;
           position: relative;
         }
@@ -1167,13 +1168,7 @@ export default function HomeSearch() {
               </button>
             </div>
 
-            <Link href="/login" className="gov-admin-link">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-              </svg>
-              <span>Admin Login</span>
-            </Link>
+            
           </div>
         </div>
       </div>

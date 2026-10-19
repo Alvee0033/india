@@ -1,89 +1,200 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
-import StatsOverview from '@/components/admin/dashboard/StatsOverview';
-import CategoryDistribution from '@/components/admin/dashboard/CategoryDistribution';
-import RecentLicensesTable from '@/components/admin/dashboard/RecentLicensesTable';
+import { useRouter } from 'next/navigation';
+import Dashboard from '@/components/admin/dashboard/Dashboard';
 
-interface DashboardStats {
-  metrics: {
-    totalLicenses: number;
-    validLicenses: number;
-    expiredLicenses: number;
-    suspendedLicenses: number;
-    totalVerifications: number;
-  };
-  categories: {
-    motorCycleCount: number;
-    motorCarCount: number;
-    ltvCount: number;
-    htvCount: number;
-  };
-  recentLicenses: Array<{
-    id: string;
-    license_number: string;
-    name: string;
-    template?: string;
-    allowed_vehicles: string;
-    status: string;
-    created_at: string;
-  }>;
-}
+export default function SomethingPage() {
+  const router = useRouter();
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-export default function AdminDashboardPage() {
-  const [data, setData] = useState<DashboardStats | null>(null);
-  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    // Check if auth cookie exists or probe admin API
+    fetch('/api/admin/profile')
+      .then((res) => {
+        if (res.ok) {
+          setIsAuthenticated(true);
+        } else {
+          setIsAuthenticated(false);
+        }
+      })
+      .catch(() => {
+        setIsAuthenticated(false);
+      });
+  }, []);
 
-  const fetchStats = async () => {
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
     try {
-      const res = await fetch('/api/admin/stats');
-      if (res.ok) {
-        const json = await res.json();
-        setData(json);
+      const res = await fetch('/api/admin/auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setIsAuthenticated(true);
+        router.refresh();
+      } else {
+        setError(data.error || 'Invalid email or password.');
       }
-    } catch (err) {
-      console.error('Telemetry error:', err);
+    } catch {
+      setError('Network error connecting to authorization server.');
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    fetchStats();
-    const interval = setInterval(fetchStats, 10000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const { metrics, categories, recentLicenses } = data || {
-    metrics: { totalLicenses: 0, validLicenses: 0, expiredLicenses: 0, suspendedLicenses: 0, totalVerifications: 0 },
-    categories: { motorCycleCount: 0, motorCarCount: 0, ltvCount: 0, htvCount: 0 },
-    recentLicenses: [],
-  };
-
-  return (
-    <div className="container-fluid p-0">
-      <div className="d-flex justify-content-between align-items-center mb-3">
-        <div>
-          <h2 className="admin-page-title mb-0">Authority Dashboard</h2>
-          <div className="text-muted small" style={{ fontSize: '0.75rem' }}>
-            DL Central Management &amp; Record Telemetry
-          </div>
-        </div>
-        <div className="d-flex gap-2">
-          <Link href="/something/licenses/new" className="btn btn-sm btn-success d-flex align-items-center gap-1 py-1 px-3 fw-semibold rounded-pill">
-            <i className="fas fa-plus me-1"></i>
-            <span>Generate Card</span>
-          </Link>
-          <button onClick={fetchStats} className="btn btn-sm btn-outline-secondary rounded-circle" style={{ width: 34, height: 34 }} title="Refresh">
-            <i className={`fas fa-sync-alt ${loading ? 'fa-spin' : ''}`}></i>
-          </button>
+  // Loading initial auth check state
+  if (isAuthenticated === null) {
+    return (
+      <div style={{ minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div className="spinner-border text-primary" role="status">
+          <span className="visually-hidden">Loading console...</span>
         </div>
       </div>
+    );
+  }
 
-      <StatsOverview metrics={metrics} />
-      <CategoryDistribution categories={categories} />
-      <RecentLicensesTable recentLicenses={recentLicenses} />
+  // If authenticated, render full dashboard
+  if (isAuthenticated) {
+    return <Dashboard />;
+  }
+
+  // If not authenticated, render login form directly inside /something
+  return (
+    <div style={{
+      minHeight: '75vh',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: '20px',
+    }}>
+      <div style={{
+        background: '#ffffff',
+        borderRadius: '12px',
+        padding: '36px 32px',
+        width: '100%',
+        maxWidth: '380px',
+        boxShadow: '0 8px 30px rgba(0, 0, 0, 0.08)',
+        border: '1px solid #e2e8f0',
+      }}>
+        <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+          <div style={{
+            width: '48px',
+            height: '48px',
+            background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)',
+            borderRadius: '10px',
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: '#fff',
+            fontSize: '22px',
+            marginBottom: '12px',
+            boxShadow: '0 4px 12px rgba(2, 132, 199, 0.3)',
+          }}>
+            <i className="fas fa-shield-halved"></i>
+          </div>
+          <h4 style={{ margin: '0 0 6px', fontWeight: 700, color: '#0f172a', fontSize: '18px' }}>
+            DLIMS Console Access
+          </h4>
+          <p style={{ margin: 0, fontSize: '12.5px', color: '#64748b' }}>
+            Authorized operators only
+          </p>
+        </div>
+
+        {error && (
+          <div style={{
+            background: '#fef2f2',
+            border: '1px solid #fecaca',
+            borderRadius: '8px',
+            padding: '10px 14px',
+            marginBottom: '18px',
+            color: '#dc2626',
+            fontSize: '13px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+          }}>
+            <i className="fas fa-triangle-exclamation"></i>
+            <span>{error}</span>
+          </div>
+        )}
+
+        <form onSubmit={handleLogin}>
+          <div style={{ marginBottom: '16px' }}>
+            <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
+              Admin Identifier
+            </label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="admin@dlims.gov"
+              required
+              autoFocus
+              style={{
+                width: '100%',
+                padding: '10px 14px',
+                border: '1.5px solid #cbd5e1',
+                borderRadius: '8px',
+                fontSize: '13.5px',
+                boxSizing: 'border-box',
+                outline: 'none',
+                background: '#f8fafc',
+              }}
+            />
+          </div>
+
+          <div style={{ marginBottom: '22px' }}>
+            <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
+              Security Password
+            </label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="••••••••••••"
+              required
+              style={{
+                width: '100%',
+                padding: '10px 14px',
+                border: '1.5px solid #cbd5e1',
+                borderRadius: '8px',
+                fontSize: '13.5px',
+                boxSizing: 'border-box',
+                outline: 'none',
+                background: '#f8fafc',
+              }}
+            />
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            style={{
+              width: '100%',
+              padding: '11px',
+              background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)',
+              color: '#ffffff',
+              border: 'none',
+              borderRadius: '8px',
+              fontWeight: 700,
+              fontSize: '14px',
+              cursor: loading ? 'not-allowed' : 'pointer',
+              boxShadow: '0 4px 12px rgba(2, 132, 199, 0.25)',
+            }}
+          >
+            {loading ? 'Authenticating...' : 'Authenticate & Enter'}
+          </button>
+        </form>
+      </div>
     </div>
   );
 }
