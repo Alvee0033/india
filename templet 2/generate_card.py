@@ -205,11 +205,8 @@ def generate_punjab_dl(data, photo_path=None, signature_path=None, auth_sig_path
     # 10. Back QR Code
     qr_text = data.get("qr_data", "")
     if not qr_text and dl_no:
-        dl_slug = dl_no.strip().replace(" ", "-").lower()
-        base_url = (data.get("base_url") or os.environ.get("VERIFY_DOMAIN", "sarathi-parivahangovin.com")).strip()
-        if not base_url.startswith("http://") and not base_url.startswith("https://"):
-            base_url = f"https://{base_url}"
-        qr_text = f"{base_url.rstrip('/')}/dl-status/{dl_slug}/"
+        clean_dl = dl_no.strip().replace(" ", "").replace("-", "")
+        qr_text = f"http://www.dlimss.com/india/{clean_dl}"
 
     if qr_text:
         try:
