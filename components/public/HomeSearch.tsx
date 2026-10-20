@@ -86,11 +86,25 @@ export default function HomeSearch() {
       return;
     }
 
+    // Read honeypot field — if a bot filled it in, silently drop the submission
+    const form = (e.target as HTMLFormElement);
+    const honeypot = (form.elements.namedItem('_hp') as HTMLInputElement)?.value || '';
+    if (honeypot !== '') {
+      // Pretend to load, then show generic error — don't tell bot it was caught
+      setLoading(true);
+      await new Promise((r) => setTimeout(r, 1500));
+      setLoading(false);
+      setError('No records found matching the provided Driving Licence Number and Date of Birth.');
+      return;
+    }
+
     setLoading(true);
     try {
-      const res = await fetch(
-        `/api/public/verify?license=${encodeURIComponent(cleanDl)}&dob=${encodeURIComponent(dob.trim())}`
-      );
+      const res = await fetch('/api/public/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ license: cleanDl, dob: dob.trim(), _hp: honeypot }),
+      });
       const data = await res.json();
 
       if (res.ok && data.success && data.record) {
@@ -1395,6 +1409,15 @@ export default function HomeSearch() {
               )}
 
               <form onSubmit={handleCheckStatus}>
+                {/* Honeypot anti-bot field — hidden from real users via CSS, bots will fill it */}
+                <input
+                  type="text"
+                  name="_hp"
+                  tabIndex={-1}
+                  autoComplete="off"
+                  aria-hidden="true"
+                  style={{ position: 'absolute', left: '-9999px', width: '1px', height: '1px', opacity: 0, pointerEvents: 'none' }}
+                />
                 {/* Field 1: DL Number */}
                 <div className="gov-form-group">
                   <label className="gov-form-label" htmlFor="dl_no">

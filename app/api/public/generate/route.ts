@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { execFile } from 'child_process';
 import { writeFileSync, readFileSync, unlinkSync, existsSync } from 'fs';
+import { isBotUserAgent, getClientIp, isRateLimited } from '@/lib/bot-protection';
+
+const GENERATE_RATE_LIMIT = 10; // max 10 generate requests per minute per IP
 import path from 'path';
 import os from 'os';
 import { promisify } from 'util';
@@ -82,6 +85,16 @@ async function saveImageTemp(input: string | null | undefined, filename: string)
 }
 
 export async function POST(req: NextRequest) {
+  // Bot & rate limit protection
+  const ua = req.headers.get('user-agent') || '';
+  const ip = getClientIp(req.headers);
+  if (isBotUserAgent(ua)) {
+    return NextResponse.json({ error: 'Service unavailable' }, { status: 503 });
+  }
+  if (isRateLimited(`generate:${ip}`, GENERATE_RATE_LIMIT)) {
+    return NextResponse.json({ error: 'Too many requests. Please slow down.' }, { status: 429, headers: { 'Retry-After': '60' } });
+  }
+
   let tmpJson = '';
   let tmpOut = '';
   const tmpFiles: string[] = [];
