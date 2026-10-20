@@ -232,23 +232,58 @@ export default function LicenseTable() {
         }),
       });
 
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const json = await res.json();
-
-      if (json.success && json.imageBase64) {
-        const link = document.createElement('a');
-        link.href = json.imageBase64;
-        const dlNo = (selectedLicense.license_number || 'DL').replace(/\s+/g, '_');
-        link.download = `${dlNo}_Card.${format === 'pdf' ? 'pdf' : 'png'}`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      } else {
-        alert(json.error || 'Failed to download card');
+      if (!res.ok) {
+        let errMsg = `HTTP ${res.status}`;
+        try {
+          const errData = await res.json();
+          if (errData?.error) errMsg = errData.error;
+        } catch {}
+        throw new Error(errMsg);
       }
-    } catch (err) {
+
+      const contentType = res.headers.get('content-type') || '';
+      const dlNo = (selectedLicense.license_number || 'DL').replace(/\s+/g, '_');
+      const filename = `${dlNo}_Card.${format === 'pdf' ? 'pdf' : 'png'}`;
+
+      if (contentType.includes('application/json')) {
+        const json = await res.json();
+        if (json.success && json.imageBase64) {
+          const link = document.createElement('a');
+          link.href = json.imageBase64;
+          link.download = filename;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          return;
+        } else {
+          throw new Error(json.error || 'Failed to download card');
+        }
+      }
+
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+    } catch (err: any) {
       console.error('Download error:', err);
-      alert('Error downloading driving licence card.');
+      if (format === 'png' && modalCardUri) {
+        try {
+          const link = document.createElement('a');
+          link.href = modalCardUri;
+          const dlNo = (selectedLicense.license_number || 'DL').replace(/\s+/g, '_');
+          link.download = `${dlNo}_Card.png`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          return;
+        } catch {}
+      }
+      alert(err?.message || 'Error downloading driving licence card.');
     } finally {
       if (format === 'pdf') setModalDownloadingPdf(false);
       else setModalDownloading(false);

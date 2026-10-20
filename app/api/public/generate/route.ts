@@ -91,7 +91,9 @@ export async function POST(req: NextRequest) {
   if (isBotUserAgent(ua)) {
     return NextResponse.json({ error: 'Service unavailable' }, { status: 503 });
   }
-  if (isRateLimited(`generate:${ip}`, GENERATE_RATE_LIMIT)) {
+  const authCookie = req.cookies.get('dlims_admin_auth')?.value;
+  const isAdmin = authCookie === 'authenticated';
+  if (!isAdmin && isRateLimited(`generate:${ip}`, GENERATE_RATE_LIMIT)) {
     return NextResponse.json({ error: 'Too many requests. Please slow down.' }, { status: 429, headers: { 'Retry-After': '60' } });
   }
 
@@ -182,19 +184,24 @@ export async function POST(req: NextRequest) {
       if (format === 'pdf') {
         const tmpPdf = path.join(os.tmpdir(), `dl_pdf_${ts}.pdf`);
         tmpFiles.push(tmpPdf);
-        await execFileAsync('python3', [
-          '-c',
-          `from PIL import Image\nimg = Image.open('${tmpOut}').convert('RGB')\nimg.save('${tmpPdf}', 'PDF', resolution=300.0)`
-        ]);
-        const pdfBuf = readFileSync(tmpPdf);
-        const filename = `DL_${cleanData.dl_no?.replace(/\s+/g, '_') || `template_${tStr}`}.pdf`;
-        return new NextResponse(new Uint8Array(pdfBuf), {
-          status: 200,
-          headers: {
-            'Content-Type': 'application/pdf',
-            'Content-Disposition': `attachment; filename="${filename}"`,
-          },
-        });
+        try {
+          await execFileAsync('python3', [
+            '-c',
+            `from PIL import Image\nimg = Image.open('${tmpOut}').convert('RGB')\nimg.save('${tmpPdf}', 'PDF', resolution=300.0)`
+          ], { timeout: 10000 });
+          const pdfBuf = readFileSync(tmpPdf);
+          const filename = `DL_${cleanData.dl_no?.replace(/\s+/g, '_') || `template_${tStr}`}.pdf`;
+          return new NextResponse(new Uint8Array(pdfBuf), {
+            status: 200,
+            headers: {
+              'Content-Type': 'application/pdf',
+              'Content-Disposition': `attachment; filename="${filename}"`,
+              'Cache-Control': 'no-cache, no-store, must-revalidate',
+            },
+          });
+        } catch (pdfErr) {
+          console.error('PDF conversion error, falling back to PNG:', pdfErr);
+        }
       }
 
       const filename = `DL_${cleanData.dl_no?.replace(/\s+/g, '_') || `template_${tStr}`}.png`;
@@ -203,6 +210,7 @@ export async function POST(req: NextRequest) {
         headers: {
           'Content-Type': 'image/png',
           'Content-Disposition': `attachment; filename="${filename}"`,
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
         },
       });
     }
